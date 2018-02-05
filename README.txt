@@ -11,6 +11,12 @@ Tasks:
   
   
   Notes: 
+  
+  2/5: 
+  https://learn.adafruit.com/adafruit-10-dof-imu-breakout-lsm303-l3gd20-bmp180?view=all#connecting-it-up
+  
+  
+  
   -Meetings: Monday/Wed 1pm-whenever
   
   Hey Angelica,
