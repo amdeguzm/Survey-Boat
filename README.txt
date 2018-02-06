@@ -6,20 +6,20 @@ Tasks:
 -parse IMU data
 -learn what an interrupt does
 -create a test plan
-  -speed, duration, turns, directions, 
+-speed, duration, turns, directions, 
   
   
   
   Notes: 
   
-  2/5: 
-  https://learn.adafruit.com/adafruit-10-dof-imu-breakout-lsm303-l3gd20-bmp180?view=all#connecting-it-up
+  2/5
+  -for IMU libraries: https://learn.adafruit.com/adafruit-10-dof-imu-breakout-lsm303-l3gd20-bmp180?view=all#connecting-it-up
   
   
-  
+  1/31
   -Meetings: Monday/Wed 1pm-whenever
   
-  Hey Angelica,
+  -Hey Angelica,
   I found some files for a shield template for the mega. 
   If you have altium, or CAD (might need to convert the file) 
   you can view what the layout will look like. Otherwise just
