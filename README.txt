@@ -14,7 +14,7 @@ Tasks:
   Notes: 
   
   2/8
-  - Uploaded notes on the servo. Survey_boat.ino can collect and parse gps, depth, and imu data. It can also print this data to 
+  - Uploaded notes about servo. Survey_boat.ino can collect and parse gps, depth, and imu data. It can also print this data to 
     a file on a microSD. Each restart of the arduino creates a new file on the microSD. 
   
   2/5
