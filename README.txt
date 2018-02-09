@@ -1,9 +1,10 @@
 # Survey-Boat
 
 Tasks: 
--Fix header and cpp files to parse transducer and GPS data 
--collect data from IMU
--parse IMU data
+-Fix header and cpp files to parse transducer and GPS data  (completed)
+-collect data from IMU                                      (completed)
+-parse IMU data                                             (completed)
+-collect throttle and rudder servo data
 -learn what an interrupt does
 -create a test plan
 -speed, duration, turns, directions, 
@@ -11,6 +12,10 @@ Tasks:
   
   
   Notes: 
+  
+  2/8
+  - Uploaded notes on the servo. Survey_boat.ino can collect and parse gps, depth, and imu data. It can also print this data to 
+    a file on a microSD. Each restart of the arduino creates a new file on the microSD. 
   
   2/5
   -for IMU libraries: https://learn.adafruit.com/adafruit-10-dof-imu-breakout-lsm303-l3gd20-bmp180?view=all#connecting-it-up
