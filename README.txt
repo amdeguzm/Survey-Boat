@@ -19,6 +19,12 @@ Tasks:
   2/5
   -for IMU libraries: https://learn.adafruit.com/adafruit-10-dof-imu-breakout-lsm303-l3gd20-bmp180?view=all#connecting-it-up
   
+  https://www.sparkfun.com/products/13712
+  
+  https://www.sparkfun.com/datasheets/GPS/EM-406A_User_Manual.PDF
+  
+  https://www.sparkfun.com/products/449
+  
   
   1/31
   -Meetings: Monday/Wed 1pm-whenever
