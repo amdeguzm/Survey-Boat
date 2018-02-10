@@ -19,8 +19,8 @@ String Depth_message = "";     // Depth nmea message string
 
 
 void setup() {
-   Serial.begin(9600);
-   Serial1.begin(115200);         // GPS
+   Serial.begin(115200);
+   Serial1.begin(4800);         // GPS
    Serial2.begin(115200);         // SD card
    Serial3.begin(9600);         // Transducer
    Wire.begin();
