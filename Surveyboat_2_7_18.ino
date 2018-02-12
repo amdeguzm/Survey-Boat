@@ -1,3 +1,4 @@
+#include <Servo.h>
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_LSM303_U.h>
@@ -5,6 +6,7 @@
 #include <Adafruit_L3GD20_U.h>
 #include <Adafruit_10DOF.h>
 
+#define TEST_TIME  1000000    // Test time in milliseconds
 
 
 Adafruit_LSM303_Accel_Unified accel = Adafruit_LSM303_Accel_Unified(30301);
@@ -17,14 +19,22 @@ String GPS_message = "";       // GPS nmea message string
 String Depth_message = "";     // Depth nmea message string
 
 
+Servo throttleServo;           // Servos for control
+Servo rudderServo;
 
 void setup() {
-   Serial.begin(115200);
+   Serial.begin(9600);
    Serial1.begin(4800);         // GPS
    Serial2.begin(115200);         // SD card
    Serial3.begin(9600);         // Transducer
    Wire.begin();
+   Serial.println("START OF TEST");
+   Serial2.println("START OF TEST"); //To parse the beginning of test, could find a way to make this date/time later?
 
+
+  throttleServo.attach(22);     // Digital pin 22 to white throttle wire
+  rudderServo.attach(23);       // Digital pin 23 to white rudder wire
+  
    // millis() returns current millisecond since program start
 
    if(!accel.begin())
@@ -53,7 +63,15 @@ void setup() {
 void loop() {
   
     record_SENSORS();
-  
+    for( int i = 1; i<170; i++){
+      rudderServo.write(i);
+      delay(250);
+    }
+    if(millis()>TEST_TIME){
+      Serial.println("END OF TEST");
+      Serial2.println("END OF TEST"); //
+      while(1);
+    }
   }
 
 
@@ -99,6 +117,16 @@ void record_SENSORS(){
        Serial2.print("X: "); Serial2.print(event.gyro.x); Serial2.print("  ");
        Serial2.print("Y: "); Serial2.print(event.gyro.y); Serial2.print("  ");
        Serial2.print("Z: "); Serial2.print(event.gyro.z); Serial2.print("  ");Serial2.println("rad/s ");
+
+       //Serial.print("Throttle: ");
+       //Serial.println(throttleServo.read());   // prints angle of servo from 0 to 180 degrees
+       //Serial.print("Rudder: ");
+       //Serial.println(rudderServo.read());
+
+       //Serial2.print("Throttle: ");
+       //Serial2.println(throttleServo.read());   // prints angle of servo from 0 to 180 degrees
+       //Serial2.print("Rudder: ");
+       //Serial2.println(rudderServo.read());
       
     while(Serial1.available()){
       old_char = new_char;
@@ -128,6 +156,9 @@ void record_SENSORS(){
     
 
 }
+
+  
+
 
   
 
