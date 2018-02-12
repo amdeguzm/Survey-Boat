@@ -13,6 +13,9 @@ Tasks:
   
   Notes: 
   
+  2/12
+  Connected the servos to the arduino. We have a problem because it seems the arduino can't read what position the servo is in. servo.read() simply returns whatever was written last to it which is useless for us. This is something we should bring up to Dr. A.
+  
   2/8
   - Uploaded notes about servo. Survey_boat.ino can collect and parse gps, depth, and imu data. It can also print this data to a file on a microSD. Each restart of the arduino creates a new file on the microSD. GPS and Depth transducer update at 1 Hz,magnetic update at 25 Hz, accelerometer update at 50Hz, gyro update 90 Hz. The last three seem to be configurable
   
