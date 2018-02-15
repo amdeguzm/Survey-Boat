@@ -75,7 +75,9 @@ void loop() {
   record_GPS();
   record_IMU();
   record_DBT();
-  print_Servo();
+  pulse_Servo();
+  
+  //print_Servo();
   
   if(millis()>TEST_TIME){
     Serial.println("END OF TEST");
@@ -183,6 +185,18 @@ void record_GPS(){
     }
   }
 }
+/*
+ * This method uses digital pins 4 and 5 to record throttle and rudder servo values
+ * values are in microseconds
+ */
+
+void pulse_Servo(){
+  Serial.print("Rudder Servo: ");
+  Serial.println(pulseIn(4, HIGH));
+
+  Serial.print("Throttle Servo: ");
+  Serial.println(pulseIn(5, HIGH));
+}
 
 void print_Servo(){
   Serial.print("Throttle Servo: ");
@@ -191,6 +205,7 @@ void print_Servo(){
   Serial.print("Rudder Servo: ");
   Serial.println(pwm_R);
 }
+
 /*
  * This method records the period of the Throttle Servo into global variable pwm_T
  * Called from interrupts occuring on pin 2, returns void
@@ -212,7 +227,6 @@ void servo_pos_throttle(){
  * Called from interrupts occuring on pin 3, returns void
  */
 void servo_pos_rudder(){
-  double Period;
   
   if( !R_state){
     timeA_R = timeB_R;
@@ -222,7 +236,6 @@ void servo_pos_rudder(){
   }
   R_state = !R_state;
 }
-
 
 
   
