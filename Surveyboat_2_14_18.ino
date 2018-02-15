@@ -94,6 +94,8 @@ void loop() {
  */
 void record_IMU(){
   sensors_event_t event;
+  sensors_vec_t orient;
+
   
     
        accel.getEvent(&event);
