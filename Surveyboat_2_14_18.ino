@@ -10,6 +10,7 @@
 #define INTERRUPT_PIN_T 2     // Digital pin 2 designated for throttle interrupts
 #define INTERRUPT_PIN_R 3     // Digital pin 3 designated for rudder interrupts
 
+Adafruit_10DOF                dof   = Adafruit_10DOF();
 Adafruit_LSM303_Accel_Unified accel = Adafruit_LSM303_Accel_Unified(30301);
 Adafruit_LSM303_Mag_Unified   mag   = Adafruit_LSM303_Mag_Unified(30302);
 Adafruit_BMP085_Unified       bmp   = Adafruit_BMP085_Unified(18001);
@@ -127,7 +128,19 @@ void record_IMU(){
        Serial2.print("X: "); Serial2.print(event.gyro.x); Serial2.print("  ");
        Serial2.print("Y: "); Serial2.print(event.gyro.y); Serial2.print("  ");
        Serial2.print("Z: "); Serial2.print(event.gyro.z); Serial2.print("  ");Serial2.println("rad/s ");
-
+       
+       if (dof.accelGetOrientation(&event,&orient))
+       {
+        Serial.print(F("ORIENTATION: ")); 
+        Serial.print("ROLL: ");    Serial.print(orient.roll);    Serial.print("  ");
+        Serial.print("PITCH: ");   Serial.print(orient.pitch);   Serial.print("  ");
+       }
+       
+       if(dof.magGetOrientation(SENSOR_AXIS_Z, &event, &orient))
+       {
+         Serial.print("HEADING: "); Serial.print(orient.heading); Serial.print("  "); Serial.println("deg");
+       }
+       //
        //Serial.print("Throttle: ");
        //Serial.println(throttleServo.read());   // prints angle of servo from 0 to 180 degrees
        //Serial.print("Rudder: ");
