@@ -1,17 +1,21 @@
 # Survey-Boat
 
 Tasks: 
+
 -Fix header and cpp files to parse transducer and GPS data  (completed)
 -collect data from IMU                                      (completed)
 -parse IMU data                                             (completed)
--collect throttle and rudder servo data
--learn what an interrupt does
--create a test plan
--speed, duration, turns, directions, 
-  
+-collect throttle and rudder servo data                     (completed)
+-check if the heading angle is affected by the motor
+-tape/velcro arduino to the boat for testing
+-try to get an interrupt to work for throttle/rudder
   
   
   Notes: 
+  
+  2/14
+  Using pulse in to read the throttle and rudder data. Added code to print the roll, pitch, and heading angles. 
+  
   
   2/12
   Connected the servos to the arduino. We have a problem because it seems the arduino can't read what position the servo is in. servo.read() simply returns whatever was written last to it which is useless for us. This is something we should bring up to Dr. A. I updated the master branches Surveyboat_2_7_18.ino to the current version of code which includes your additions. 
