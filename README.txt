@@ -14,7 +14,7 @@ Tasks:
   Notes: 
   
   2/14
-  Using pulse in to read the throttle and rudder data. Added code to print the roll, pitch, and heading angles. 
+  Applied pulse in to read the throttle and rudder data. Added code to print the roll, pitch, and heading angles. 
   
   
   2/12
