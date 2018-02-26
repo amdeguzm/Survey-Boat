@@ -95,52 +95,57 @@ void loop() {
 void record_IMU(){
   sensors_event_t event;
   sensors_vec_t orient;
-
   
     
        accel.getEvent(&event);
-       Serial.print(F("ACCEL "));
+       Serial.print(F("ACCEL  "));
        Serial.print("X: "); Serial.print(event.acceleration.x); Serial.print("  ");
        Serial.print("Y: "); Serial.print(event.acceleration.y); Serial.print("  ");
        Serial.print("Z: "); Serial.print(event.acceleration.z); Serial.print("  ");Serial.println("m/s^2 ");
 
-       Serial2.print(F("ACCEL "));
+       Serial2.print(F("ACCEL  "));
        Serial2.print("X: "); Serial2.print(event.acceleration.x); Serial2.print("  ");
        Serial2.print("Y: "); Serial2.print(event.acceleration.y); Serial2.print("  ");
        Serial2.print("Z: "); Serial2.print(event.acceleration.z); Serial2.print("  ");Serial2.println("m/s^2 ");
 
        mag.getEvent(&event);
-       Serial.print(F("MAG   "));
+       Serial.print(F("MAG    "));
        Serial.print("X: "); Serial.print(event.magnetic.x); Serial.print("  ");
        Serial.print("Y: "); Serial.print(event.magnetic.y); Serial.print("  ");
        Serial.print("Z: "); Serial.print(event.magnetic.z); Serial.print("  ");Serial.println("uT");
 
-       Serial2.print(F("MAG   "));
+       Serial2.print(F("MAG    "));
        Serial2.print("X: "); Serial2.print(event.magnetic.x); Serial2.print("  ");
        Serial2.print("Y: "); Serial2.print(event.magnetic.y); Serial2.print("  ");
        Serial2.print("Z: "); Serial2.print(event.magnetic.z); Serial2.print("  ");Serial2.println("uT");
 
        gyro.getEvent(&event);
-       Serial.print(F("GYRO  "));
+       Serial.print(F("GYRO   "));
        Serial.print("X: "); Serial.print(event.gyro.x); Serial.print("  ");
        Serial.print("Y: "); Serial.print(event.gyro.y); Serial.print("  ");
        Serial.print("Z: "); Serial.print(event.gyro.z); Serial.print("  ");Serial.println("rad/s ");
 
-       Serial2.print(F("GYRO  "));
+       Serial2.print(F("GYRO   "));
        Serial2.print("X: "); Serial2.print(event.gyro.x); Serial2.print("  ");
        Serial2.print("Y: "); Serial2.print(event.gyro.y); Serial2.print("  ");
        Serial2.print("Z: "); Serial2.print(event.gyro.z); Serial2.print("  ");Serial2.println("rad/s ");
        
        if (dof.accelGetOrientation(&event,&orient))
        {
-        Serial.print(F("ORIENTATION: ")); 
-        Serial.print("ROLL: ");    Serial.print(orient.roll);    Serial.print("  ");
-        Serial.print("PITCH: ");   Serial.print(orient.pitch);   Serial.print("  ");
+        Serial.print(F("ORIENT ")); 
+        Serial.print("X: "); Serial.print(orient.roll); Serial.print("  ");
+        Serial.print("Y: "); Serial.print(orient.pitch);Serial.print("  ");
+        
+        Serial2.print(F("ORIENT ")); 
+        Serial2.print("X: "); Serial2.print(orient.roll); Serial2.print("  ");
+        Serial2.print("Y: "); Serial2.print(orient.pitch);Serial2.print("  ");
        }
        
        if(dof.magGetOrientation(SENSOR_AXIS_Z, &event, &orient))
        {
-         Serial.print("HEADING: "); Serial.print(orient.heading); Serial.print("  "); Serial.println("deg");
+         Serial.print("Z: "); Serial.print(orient.heading); Serial.print("  "); Serial.println("deg");
+
+         Serial2.print("Z: "); Serial2.print(orient.heading); Serial2.print("  "); Serial2.println("deg");
        }
        //
        //Serial.print("Throttle: ");
