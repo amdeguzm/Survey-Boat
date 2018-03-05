@@ -6,7 +6,7 @@
 #include <Adafruit_L3GD20_U.h>
 #include <Adafruit_10DOF.h>
 
-#define TEST_TIME  1000000    // Test time in milliseconds
+#define TEST_TIME  10000000    // Test time in milliseconds
 #define INTERRUPT_PIN_T 2     // Digital pin 2 designated for throttle interrupts
 #define INTERRUPT_PIN_R 3     // Digital pin 3 designated for rudder interrupts
 
@@ -33,9 +33,9 @@ Servo throttleServo;           // Servos for control
 Servo rudderServo;
 
 void setup() {
-   Serial.begin(9600);
+   Serial.begin(115200);
    Serial1.begin(4800);         // GPS
-   Serial2.begin(9600);         // SD card
+   Serial2.begin(115200);         // SD card
    Serial3.begin(9600);         // Transducer
    Wire.begin();
    Serial.println("START OF TEST");
@@ -216,6 +216,12 @@ void pulse_Servo(){
 
   Serial.print("Throttle Servo: ");
   Serial.println(pulseIn(5, HIGH));
+
+  Serial2.print("Rudder Servo: ");
+  Serial2.println(pulseIn(4, HIGH));
+
+  Serial2.print("Throttle Servo: ");
+  Serial2.println(pulseIn(5, HIGH));
 }
 
 void print_Servo(){
@@ -256,8 +262,4 @@ void servo_pos_rudder(){
   }
   R_state = !R_state;
 }
-
-
-  
-
 
