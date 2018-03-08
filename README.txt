@@ -13,6 +13,20 @@ Tasks:
   
   Notes: 
   
+  3/8
+  Test Plan
+    record time at power on
+      Time:
+    clockwise circles (need start time)
+      Start Time:
+    counterclockwise circles (need start time)
+      Start Time:
+    step response slow, medium, fast
+      Slow start time:
+      Medium start time:
+      fast start time:
+  finished
+  
   2/14
   Applied pulse in to read the throttle and rudder data. Added code to print the roll, pitch, and heading angles. 
   
