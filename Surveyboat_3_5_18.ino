@@ -40,6 +40,20 @@ void setup() {
    Wire.begin();
    Serial.println("START OF TEST");
    Serial2.println("START OF TEST"); //To parse the beginning of test, could find a way to make this date/time later?
+   
+   Serial.println("Survey Boat Data Packet");
+   Serial.print("ax");Serial.print(" ");Serial.print("ay");Serial.print(" ");Serial.print("az");Serial.print(" ");
+   Serial.print("mx");Serial.print(" ");Serial.print("my");Serial.print(" ");Serial.print("mz");Serial.print(" ");
+   Serial.print("rx");Serial.print(" ");Serial.print("ry");Serial.print(" ");Serial.print("rz");Serial.print(" ");
+   Serial.print("roll");Serial.print(" ");Serial.print("pitch");Serial.print(" ");Serial.print("yaw");Serial.print(" ");
+   Serial.print("throttle");Serial.print(" ");Serial.println("rudder");
+   
+   Serial2.print("ax");Serial2.print(" ");Serial2.print("ay");Serial2.print(" ");Serial2.print("az");Serial2.print(" ");
+   Serial2.print("mx");Serial2.print(" ");Serial2.print("my");Serial2.print(" ");Serial2.print("mz");Serial2.print(" ");
+   Serial2.print("rx");Serial2.print(" ");Serial2.print("ry");Serial2.print(" ");Serial2.print("rz");Serial2.print(" ");
+   Serial2.print("roll");Serial2.print(" ");Serial2.print("pitch");Serial2.print(" ");Serial2.print("yaw");Serial2.print(" ");
+   Serial2.print("throttle");Serial2.print(" ");Serial2.println("rudder");
+   
 
    attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN_T), servo_pos_throttle, CHANGE);
    attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN_R), servo_pos_rudder, CHANGE);
@@ -98,55 +112,58 @@ void record_IMU(){
   
     
        accel.getEvent(&event);
-       Serial.print(F("ACCEL  "));
-       Serial.print("X: "); Serial.print(event.acceleration.x); Serial.print("  ");
-       Serial.print("Y: "); Serial.print(event.acceleration.y); Serial.print("  ");
-       Serial.print("Z: "); Serial.print(event.acceleration.z); Serial.print("  ");Serial.println("m/s^2 ");
+       Serial.print(event.acceleration.x); Serial.print(",");
+       Serial.print(event.acceleration.y); Serial.print(",");
+       Serial.print(event.acceleration.z); Serial.print(",");
+       
+       Serial2.print(event.acceleration.x); Serial2.print(",");
+       Serial2.print(event.acceleration.y); Serial2.print(",");
+       Serial2.print(event.acceleration.z); Serial2.print(",");
 
-       Serial2.print(F("ACCEL  "));
-       Serial2.print("X: "); Serial2.print(event.acceleration.x); Serial2.print("  ");
-       Serial2.print("Y: "); Serial2.print(event.acceleration.y); Serial2.print("  ");
-       Serial2.print("Z: "); Serial2.print(event.acceleration.z); Serial2.print("  ");Serial2.println("m/s^2 ");
+      
 
        mag.getEvent(&event);
-       Serial.print(F("MAG    "));
-       Serial.print("X: "); Serial.print(event.magnetic.x); Serial.print("  ");
-       Serial.print("Y: "); Serial.print(event.magnetic.y); Serial.print("  ");
-       Serial.print("Z: "); Serial.print(event.magnetic.z); Serial.print("  ");Serial.println("uT");
+       Serial.print(event.magnetic.x); Serial.print(",");
+       Serial.print(event.magnetic.y); Serial.print(",");
+       Serial.print(event.magnetic.z); Serial.print(",");
+       
+       Serial2.print(event.magnetic.x); Serial2.print(",");
+       Serial2.print(event.magnetic.y); Serial2.print(",");
+       Serial2.print(event.magnetic.z); Serial2.print(",");
 
-       Serial2.print(F("MAG    "));
-       Serial2.print("X: "); Serial2.print(event.magnetic.x); Serial2.print("  ");
-       Serial2.print("Y: "); Serial2.print(event.magnetic.y); Serial2.print("  ");
-       Serial2.print("Z: "); Serial2.print(event.magnetic.z); Serial2.print("  ");Serial2.println("uT");
-
+       
        gyro.getEvent(&event);
-       Serial.print(F("GYRO   "));
-       Serial.print("X: "); Serial.print(event.gyro.x); Serial.print("  ");
-       Serial.print("Y: "); Serial.print(event.gyro.y); Serial.print("  ");
-       Serial.print("Z: "); Serial.print(event.gyro.z); Serial.print("  ");Serial.println("rad/s ");
+       Serial.print(event.gyro.x); Serial.print(",");
+       Serial.print(event.gyro.y); Serial.print(",");
+       Serial.print(event.gyro.z); Serial.print(",");
+       
+       Serial2.print(event.gyro.x); Serial2.print(",");
+       Serial2.print(event.gyro.y); Serial2.print(",");
+       Serial2.print(event.gyro.z); Serial2.print(",");
 
-       Serial2.print(F("GYRO   "));
-       Serial2.print("X: "); Serial2.print(event.gyro.x); Serial2.print("  ");
-       Serial2.print("Y: "); Serial2.print(event.gyro.y); Serial2.print("  ");
-       Serial2.print("Z: "); Serial2.print(event.gyro.z); Serial2.print("  ");Serial2.println("rad/s ");
+       
        
        if (dof.accelGetOrientation(&event,&orient))
        {
-        Serial.print(F("ORIENT ")); 
-        Serial.print("X: "); Serial.print(orient.roll); Serial.print("  ");
-        Serial.print("Y: "); Serial.print(orient.pitch);Serial.print("  ");
+        Serial.print(orient.roll); Serial.print(",");
+        Serial.print(orient.pitch);Serial.print(",");
         
-        Serial2.print(F("ORIENT ")); 
-        Serial2.print("X: "); Serial2.print(orient.roll); Serial2.print("  ");
-        Serial2.print("Y: "); Serial2.print(orient.pitch);Serial2.print("  ");
+        Serial2.print(orient.roll); Serial2.print(",");
+        Serial2.print(orient.pitch);Serial2.print(",");
+        
+        
        }
        
        if(dof.magGetOrientation(SENSOR_AXIS_Z, &event, &orient))
        {
-         Serial.print("Z: "); Serial.print(orient.heading); Serial.print("  "); Serial.println("deg");
-
-         Serial2.print("Z: "); Serial2.print(orient.heading); Serial2.print("  "); Serial2.println("deg");
+        Serial.print(orient.heading); Serial.print(""); 
+        
+        Serial2.print(orient.heading); Serial.print(""); 
        }
+       
+
+
+
        //
        //Serial.print("Throttle: ");
        //Serial.println(throttleServo.read());   // prints angle of servo from 0 to 180 degrees
@@ -211,17 +228,10 @@ void record_GPS(){
  */
 
 void pulse_Servo(){
-  Serial.print("Rudder Servo: ");
-  Serial.println(pulseIn(4, HIGH));
-
-  Serial.print("Throttle Servo: ");
-  Serial.println(pulseIn(5, HIGH));
-
-  Serial2.print("Rudder Servo: ");
-  Serial2.println(pulseIn(4, HIGH));
-
-  Serial2.print("Throttle Servo: ");
-  Serial2.println(pulseIn(5, HIGH));
+  Serial.print(pulseIn(4, HIGH));Serial.print(",");Serial.println(pulseIn(5, HIGH));
+  
+  Serial2.print(pulseIn(4, HIGH));Serial2.print(",");Serial2.println(pulseIn(5, HIGH));
+ 
 }
 
 void print_Servo(){
@@ -262,4 +272,3 @@ void servo_pos_rudder(){
   }
   R_state = !R_state;
 }
-
