@@ -2,16 +2,25 @@
 
 Tasks: 
 
+-redo the wiring from the receiver to the servos
+-conduct static tests on boat to see if csv files are printed on SD card
+-check if the heading angle is affected by the motor
+-try to get an interrupt to work for throttle/rudder
+
 -Fix header and cpp files to parse transducer and GPS data  (completed)
 -collect data from IMU                                      (completed)
 -parse IMU data                                             (completed)
 -collect throttle and rudder servo data                     (completed)
--check if the heading angle is affected by the motor
--tape/velcro arduino to the boat for testing
--try to get an interrupt to work for throttle/rudder
+-tape/velcro arduino to the boat for testing                (completed)
   
   
   Notes: 
+  
+  4/2
+  -Updated code to get arduino to read PWM signal from the receiver and write the value to the servos
+  -reorganized code into sections
+  
+  
   
   3/8
   Test Plan
