@@ -1,0 +1,216 @@
+//-----------------------------------LIBRARIES----------------------------------------------
+#include <Wire.h>
+#include <Adafruit_Sensor.h>         // IMU libraries
+#include <Adafruit_LSM303_U.h>
+#include <Adafruit_BMP085_U.h>
+#include <Adafruit_L3GD20_U.h>
+#include <Adafruit_10DOF.h>
+#include <Servo.h>                   // Servo library
+
+
+//-----------------------------------MACROS-------------------------------------------------
+#define TEST_TIME  10000000          // Test time in milliseconds
+#define THR_PULSE  3                 // Throttle analog input pin from receiver 
+#define THR_PIN    8                 // Throttle digital output pin to servo
+#define RUD_PULSE  4                 // Rudder analog input pin from receiver 
+#define RUD_PIN    9                 // Rudder digital output pin to servo
+
+
+//-----------------------------------VARIABLES----------------------------------------------
+Adafruit_10DOF                       dof   = Adafruit_10DOF();                     
+Adafruit_LSM303_Accel_Unified        accel = Adafruit_LSM303_Accel_Unified(30301);
+Adafruit_LSM303_Mag_Unified          mag   = Adafruit_LSM303_Mag_Unified(30302);
+Adafruit_BMP085_Unified              bmp   = Adafruit_BMP085_Unified(18001);
+Adafruit_L3GD20_Unified              gyro  = Adafruit_L3GD20_Unified(20);
+String GPS_message = "";             // GPS nmea message string
+String Depth_message = "";           // Depth nmea message string
+Servo throttleServo;                 // Servo instantiation and initialization
+Servo rudderServo;
+volatile unsigned long thrPWM = 0;
+volatile unsigned long rudPWM = 0;
+
+
+//-----------------------------------SETUP---------------------------------------------------
+void setup() {
+   Serial.begin(115200);
+   Serial1.begin(4800);              // GPS
+   Serial2.begin(115200);            // SD card
+   Serial3.begin(9600);              // Transducer
+   Wire.begin();
+   
+   Serial.println("START OF TEST");
+   Serial2.println("START OF TEST"); //To parse the beginning of test, could find a way to make this date/time later?
+   
+   Serial.println("Survey Boat Data Packet");
+   Serial.print("ax");Serial.print(" ");Serial.print("ay");Serial.print(" ");Serial.print("az");Serial.print(" ");
+   Serial.print("mx");Serial.print(" ");Serial.print("my");Serial.print(" ");Serial.print("mz");Serial.print(" ");
+   Serial.print("rx");Serial.print(" ");Serial.print("ry");Serial.print(" ");Serial.print("rz");Serial.print(" ");
+   Serial.print("roll");Serial.print(" ");Serial.print("pitch");Serial.print(" ");Serial.print("yaw");Serial.print(" ");
+   Serial.print("throttle");Serial.print(" ");Serial.println("rudder");
+   Serial2.print("ax");Serial2.print(" ");Serial2.print("ay");Serial2.print(" ");Serial2.print("az");Serial2.print(" ");
+   Serial2.print("mx");Serial2.print(" ");Serial2.print("my");Serial2.print(" ");Serial2.print("mz");Serial2.print(" ");
+   Serial2.print("rx");Serial2.print(" ");Serial2.print("ry");Serial2.print(" ");Serial2.print("rz");Serial2.print(" ");
+   Serial2.print("roll");Serial2.print(" ");Serial2.print("pitch");Serial2.print(" ");Serial2.print("yaw");Serial2.print(" ");
+   Serial2.print("throttle");Serial2.print(" ");Serial2.println("rudder");
+ 
+   throttleServo.attach(THR_PIN);    // Digital pin 8 to white throttle wire
+   rudderServo.attach(RUD_PIN);      // Digital pin 9 to white rudder wire
+   
+   if(!accel.begin()){
+    /* There was a problem detecting the ADXL345 ... check your connections */
+    Serial.println(F("Ooops, no LSM303 detected ... Check your wiring!"));
+    while(1);
+   }
+   if(!mag.begin()){
+    /* There was a problem detecting the LSM303 ... check your connections */
+    Serial.println("Ooops, no LSM303 detected ... Check your wiring!");
+    while(1);
+   }
+   if(!gyro.begin()){
+    /* There was a problem detecting the L3GD20 ... check your connections */
+    Serial.print("Ooops, no L3GD20 detected ... Check your wiring or I2C ADDR!");
+    while(1);
+   }
+}
+
+//-----------------------------------LOOP---------------------------------------------------
+void loop() {
+  record_GPS();
+  record_IMU();
+  record_DBT();
+  pulse_Servo();   
+  if(millis()>TEST_TIME){
+    Serial.println("END OF TEST");
+    Serial2.println("END OF TEST"); 
+    while(1);
+  }
+}
+
+
+//-----------------------------------FUNCTIONS-----------------------------------------------
+/*
+ * This method retrieves and prints Accelerometer, Magnetometer and Gyro data
+ * It has a no arg input and returns void
+ */
+void record_IMU(){
+  sensors_event_t event;
+  sensors_vec_t orient;
+  
+  accel.getEvent(&event);
+  Serial.print(event.acceleration.x); Serial.print(",");
+  Serial.print(event.acceleration.y); Serial.print(",");
+  Serial.print(event.acceleration.z); Serial.print(",");
+  Serial2.print(event.acceleration.x); Serial2.print(",");
+  Serial2.print(event.acceleration.y); Serial2.print(",");
+  Serial2.print(event.acceleration.z); Serial2.print(",");
+   
+  mag.getEvent(&event);
+  Serial.print(event.magnetic.x); Serial.print(",");
+  Serial.print(event.magnetic.y); Serial.print(",");
+  Serial.print(event.magnetic.z); Serial.print(",");
+  Serial2.print(event.magnetic.x); Serial2.print(",");
+  Serial2.print(event.magnetic.y); Serial2.print(",");
+  Serial2.print(event.magnetic.z); Serial2.print(",");
+  
+  gyro.getEvent(&event);
+  Serial.print(event.gyro.x); Serial.print(",");
+  Serial.print(event.gyro.y); Serial.print(",");
+  Serial.print(event.gyro.z); Serial.print(",");
+  Serial2.print(event.gyro.x); Serial2.print(",");
+  Serial2.print(event.gyro.y); Serial2.print(",");
+  Serial2.print(event.gyro.z); Serial2.print(",");  
+  
+  if (dof.accelGetOrientation(&event,&orient)){
+    Serial.print(orient.roll); Serial.print(",");
+    Serial.print(orient.pitch);Serial.print(",");
+    Serial2.print(orient.roll); Serial2.print(",");
+    Serial2.print(orient.pitch);Serial2.print(",");
+  }
+  
+  if(dof.magGetOrientation(SENSOR_AXIS_Z, &event, &orient)){
+    Serial.print(orient.heading); Serial.print(","); 
+    Serial2.print(orient.heading); Serial2.print(","); 
+  }         
+}
+
+ 
+/*
+ * This method retrieves Depth readings from the transducer and prints the full NMEA string
+ * No arg input and returns void
+ */
+void record_DBT(){
+  static char new_chardepth;
+  static char old_chardepth;
+  if(Serial3.available()){
+    while(Serial3.available()){
+        old_chardepth = new_chardepth;
+        new_chardepth = (char) Serial3.read();
+        Depth_message += new_chardepth;
+        if(old_chardepth == '\r' && new_chardepth == '\n'){
+          Serial.print(Depth_message);
+          Serial2.print(Depth_message);
+          Depth_message = "";
+        }
+    }
+  }
+}
+
+
+/*
+ * This method retrieves GPS readings from the GPS and prints the full NMEA string 
+ * No arg input and returns void
+ */
+void record_GPS(){
+  static char new_char;
+  static char old_char;
+  if(Serial1.available()){
+    while(Serial1.available()){
+        old_char = new_char;
+        new_char = (char) Serial1.read();
+        GPS_message += new_char;      
+        if(old_char == '\r' && new_char == '\n'){             // stop at the end of nmea data packet
+            Serial.print(GPS_message);
+            Serial2.print(GPS_message);
+            GPS_message = "";                                 // clearing message
+        }
+    }
+  }
+}
+
+/*
+ * This method uses analog pins 3 and 4 to record throttle and rudder servo values
+ * values are in microseconds
+ */
+void pulse_Servo(){
+  thrPWM = pulseIn(THR_PULSE,HIGH);
+  if (thrPWM>=1100 && thrPWM<=1900){
+    throttleServo.writeMicroseconds(thrPWM);
+  }
+  else if(thrPWM > 1900){
+    thrPWM = 1900;
+    throttleServo.writeMicroseconds(thrPWM);
+  }
+  else if(thrPWM < 1100){
+    thrPWM = 1100;
+    throttleServo.writeMicroseconds(thrPWM);
+  }
+  Serial.print(thrPWM);Serial.print(",");                //print the pulsewidth of the throttle when signal is high
+  Serial2.print(thrPWM);Serial2.print(","); 
+
+
+  rudPWM = pulseIn(RUD_PULSE,HIGH);
+  if (rudPWM>=1100 && rudPWM<=1900){
+    rudderServo.writeMicroseconds(rudPWM);
+  }
+  else if(rudPWM > 1900){
+    rudPWM = 1900;
+    rudderServo.writeMicroseconds(rudPWM);
+  }
+  else if(rudPWM < 1100){
+    rudPWM = 1100;
+    rudderServo.writeMicroseconds(rudPWM);
+  }
+  Serial.println(rudPWM);Serial.print("");              //print the pulsewidth of the rudder when signal is high
+  Serial2.println(rudPWM);Serial2.println(""); 
+}
+
