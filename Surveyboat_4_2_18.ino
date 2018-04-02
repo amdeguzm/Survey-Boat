@@ -176,11 +176,11 @@ void record_GPS(){
     }
   }
 }
+
 /*
- * This method uses digital pins 4 and 5 to record throttle and rudder servo values
+ * This method uses analog pins 3 and 4 to record throttle and rudder servo values
  * values are in microseconds
  */
-
 void pulse_Servo(){
   thrPWM = pulseIn(THR_PULSE,HIGH);
   if (thrPWM>=1100 && thrPWM<=1900){
@@ -213,3 +213,4 @@ void pulse_Servo(){
   Serial.println(rudPWM);Serial.print("");              //print the pulsewidth of the rudder when signal is high
   Serial2.println(rudPWM);Serial2.println(""); 
 }
+
