@@ -2,6 +2,7 @@
 
 Tasks: 
 
+-aquire 3 channel connectors and extra cable
 -redo the wiring from the receiver to the servos
 -conduct static tests on boat to see if csv files are printed on SD card
 -check if the heading angle is affected by the motor
