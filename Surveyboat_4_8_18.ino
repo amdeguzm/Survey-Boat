@@ -10,36 +10,40 @@
 
 //-----------------------------------MACROS-------------------------------------------------
 #define TEST_TIME  10000000          // Test time in milliseconds
-#define THR_PULSE  3                 // Throttle analog input pin from receiver 
+#define THR_PULSE  3                 // Throttle digitl input pin from receiver 
 #define THR_PIN    8                 // Throttle digital output pin to servo
-#define RUD_PULSE  4                 // Rudder analog input pin from receiver 
+#define RUD_PULSE  4                 // Rudder digital input pin from receiver 
 #define RUD_PIN    9                 // Rudder digital output pin to servo
 
 
-//-----------------------------------VARIABLES----------------------------------------------
+//-----------------------------------OBJECTS-------------------------------------------------
 Adafruit_10DOF                       dof   = Adafruit_10DOF();                     
 Adafruit_LSM303_Accel_Unified        accel = Adafruit_LSM303_Accel_Unified(30301);
 Adafruit_LSM303_Mag_Unified          mag   = Adafruit_LSM303_Mag_Unified(30302);
 Adafruit_BMP085_Unified              bmp   = Adafruit_BMP085_Unified(18001);
 Adafruit_L3GD20_Unified              gyro  = Adafruit_L3GD20_Unified(20);
-String GPS_message = "";             // GPS nmea message string
-String Depth_message = "";           // Depth nmea message string
 Servo throttleServo;                 // Servo instantiation and initialization
 Servo rudderServo;
+
+//-----------------------------------VARIABLES-----------------------------------------------
 volatile unsigned long thrPWM = 0;
 volatile unsigned long rudPWM = 0;
-
+String GPS_message = "";             // GPS nmea message string
+String Depth_message = "";           // Depth nmea message string
 
 //-----------------------------------SETUP---------------------------------------------------
 void setup() {
-   Serial.begin(115200);
+   Serial.begin(57600);
    Serial1.begin(4800);              // GPS
-   Serial2.begin(115200);            // SD card
+   Serial2.begin(57600);            // SD card
    Serial3.begin(9600);              // Transducer
    Wire.begin();
+
+   
    
    Serial.println("START OF TEST");
    Serial2.println("START OF TEST"); //To parse the beginning of test, could find a way to make this date/time later?
+   delay(2000);
    
    Serial.println("Survey Boat Data Packet");
    Serial.print("ax");Serial.print(" ");Serial.print("ay");Serial.print(" ");Serial.print("az");Serial.print(" ");
@@ -52,6 +56,7 @@ void setup() {
    Serial2.print("rx");Serial2.print(" ");Serial2.print("ry");Serial2.print(" ");Serial2.print("rz");Serial2.print(" ");
    Serial2.print("roll");Serial2.print(" ");Serial2.print("pitch");Serial2.print(" ");Serial2.print("yaw");Serial2.print(" ");
    Serial2.print("throttle");Serial2.print(" ");Serial2.println("rudder");
+   
  
    throttleServo.attach(THR_PIN);    // Digital pin 8 to white throttle wire
    rudderServo.attach(RUD_PIN);      // Digital pin 9 to white rudder wire
@@ -77,7 +82,7 @@ void setup() {
 void loop() {
   record_GPS();
   record_IMU();
-  record_DBT();
+  //record_DBT();
   pulse_Servo();   
   if(millis()>TEST_TIME){
     Serial.println("END OF TEST");
@@ -148,7 +153,7 @@ void record_DBT(){
         Depth_message += new_chardepth;
         if(old_chardepth == '\r' && new_chardepth == '\n'){
           Serial.print(Depth_message);
-          Serial2.print(Depth_message);
+          Serial3.print(Depth_message);
           Depth_message = "";
         }
     }
@@ -178,11 +183,12 @@ void record_GPS(){
 }
 
 /*
- * This method uses analog pins 3 and 4 to record throttle and rudder servo values
+ * This method uses digital pins 3 and 4 to record throttle and rudder servo values
  * values are in microseconds
  */
 void pulse_Servo(){
   thrPWM = pulseIn(THR_PULSE,HIGH);
+
   if (thrPWM>=1100 && thrPWM<=1900){
     throttleServo.writeMicroseconds(thrPWM);
   }
@@ -212,5 +218,5 @@ void pulse_Servo(){
   }
   Serial.println(rudPWM);Serial.print("");              //print the pulsewidth of the rudder when signal is high
   Serial2.println(rudPWM);Serial2.println(""); 
-}
 
+}
