@@ -1,0 +1,33 @@
+Servo motors have three wires: power, ground, and signal. The power wire is typically red, and should be connected to the 5V pin on the Arduino board. The ground wire is typically black or brown and should be connected to a ground pin on the Arduino board. The signal pin is typically yellow, orange or white and should be connected to a digital pin on the Arduino board. Note that servos draw considerable power, so if you need to drive more than one or two, you'll probably need to power them from a separate supply (i.e. not the +5V pin on your Arduino). Be sure to connect the grounds of the Arduino and external power supply together.
+
+We have red (power), black (ground), and white (signal) wires.
+
+Code functions:
+
+Servo myServo          // creates variable of type servo
+Servo throttleServo    // What we will name our servo for throttle
+Servo rudderServo      // What we will name our servo for our rudder
+
+	servo.attach(pin) 
+	servo.attach(pin, min, max)
+
+	pin: the number of the pin that the servo is attached to
+
+	min (optional): the pulse width, in microseconds, corresponding to the minimum (0-		degree) angle on the servo (defaults to 544)
+
+	max (optional): the pulse width, in microseconds, corresponding to the maximum 		(180-degree) angle on the servo (defaults to 2400)
+
+
+myServo.attached()   // checks to see if servo is connected to pin returns true/false
+	             // will be useful for troubleshooting hardware errors
+
+myServo.read()       // returns angle of servo from 0 to 180 degrees
+                     // this is what we will use for our preliminary tests
+
+
+
+
+I believe our drive shaft motor (throttle) is a continuous rotation servo which means a 
+position "90" is stop, "180" is full throttle, and "0" reverse full throttle.
+
+I believe our rudder is a Positional rotation servo which means "0" all the way to the left, "90" middle, "180" all the way to the right. <-- I might have this backwards

@@ -1,0 +1,32 @@
+  Test 1 clockwise circles
+    record time at power on
+      Time: 10:23:31
+    clockwise circles (need start time)
+      Start Time: 10:24:13    
+    clockwise circles (neeed end time)
+      End Time: 10:24:38
+ 
+   
+Test 2 counterclockwise circles 
+    record time at power on
+      Time:
+    counterclockwise circles(need start time)
+      Start Time:
+    counterclockwise circles (neeed end time)
+      End Time: 
+      
+Test 3 constant speed
+    record time at power on
+      Time:
+    constant speed(need start time)
+      Start Time:
+    constant speed (neeed end time)
+      End Time:
+      
+Test 4 step response slow, medium, fast
+      Slow start time:
+      Medium start time:
+      fast start time:
+  finished
+  
+  
