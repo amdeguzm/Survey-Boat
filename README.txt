@@ -2,8 +2,6 @@
 
 Tasks: 
 
--aquire 3 channel connectors and extra cable
--redo the wiring from the receiver to the servos
 -conduct static tests on boat to see if csv files are printed on SD card
 -check if the heading angle is affected by the motor
 -try to get an interrupt to work for throttle/rudder
@@ -13,9 +11,18 @@ Tasks:
 -parse IMU data                                             (completed)
 -collect throttle and rudder servo data                     (completed)
 -tape/velcro arduino to the boat for testing                (completed)
+-redo the wiring from the receiver to the servos            (completed)
+-aquire 3 channel connectors and extra cable                (completed)
+
+
   
   
   Notes: 
+  
+  4/8
+  -used an external battery to power the servos (servos were drawing too much current from the arduino causing it to reset)
+  -code only writes one .csv file 
+    
   
   4/2
   -Updated code to get arduino to read PWM signal from the receiver and write the value to the servos
