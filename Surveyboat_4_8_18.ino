@@ -76,6 +76,7 @@ void setup() {
     Serial.print("Ooops, no L3GD20 detected ... Check your wiring or I2C ADDR!");
     while(1);
    }
+   
 }
 
 //-----------------------------------LOOP---------------------------------------------------
@@ -98,41 +99,43 @@ void loop() {
  * It has a no arg input and returns void
  */
 void record_IMU(){
-  sensors_event_t event;
+  sensors_event_t accel_event;
+  sensors_event_t mag_event;
+  sensors_event_t gyro_event;
   sensors_vec_t orient;
   
-  accel.getEvent(&event);
-  Serial.print(event.acceleration.x); Serial.print(",");
-  Serial.print(event.acceleration.y); Serial.print(",");
-  Serial.print(event.acceleration.z); Serial.print(",");
-  Serial2.print(event.acceleration.x); Serial2.print(",");
-  Serial2.print(event.acceleration.y); Serial2.print(",");
-  Serial2.print(event.acceleration.z); Serial2.print(",");
+  accel.getEvent(&accel_event);
+  Serial.print(accel_event.acceleration.x); Serial.print(",");
+  Serial.print(accel_event.acceleration.y); Serial.print(",");
+  Serial.print(accel_event.acceleration.z); Serial.print(",");
+  Serial2.print(accel_event.acceleration.x); Serial2.print(",");
+  Serial2.print(accel_event.acceleration.y); Serial2.print(",");
+  Serial2.print(accel_event.acceleration.z); Serial2.print(",");
    
-  mag.getEvent(&event);
-  Serial.print(event.magnetic.x); Serial.print(",");
-  Serial.print(event.magnetic.y); Serial.print(",");
-  Serial.print(event.magnetic.z); Serial.print(",");
-  Serial2.print(event.magnetic.x); Serial2.print(",");
-  Serial2.print(event.magnetic.y); Serial2.print(",");
-  Serial2.print(event.magnetic.z); Serial2.print(",");
+  mag.getEvent(&mag_event);
+  Serial.print(mag_event.magnetic.x); Serial.print(",");
+  Serial.print(mag_event.magnetic.y); Serial.print(",");
+  Serial.print(mag_event.magnetic.z); Serial.print(",");
+  Serial2.print(mag_event.magnetic.x); Serial2.print(",");
+  Serial2.print(mag_event.magnetic.y); Serial2.print(",");
+  Serial2.print(mag_event.magnetic.z); Serial2.print(",");
   
-  gyro.getEvent(&event);
-  Serial.print(event.gyro.x); Serial.print(",");
-  Serial.print(event.gyro.y); Serial.print(",");
-  Serial.print(event.gyro.z); Serial.print(",");
-  Serial2.print(event.gyro.x); Serial2.print(",");
-  Serial2.print(event.gyro.y); Serial2.print(",");
-  Serial2.print(event.gyro.z); Serial2.print(",");  
+  gyro.getEvent(&gyro_event);
+  Serial.print(gyro_event.gyro.x); Serial.print(",");
+  Serial.print(gyro_event.gyro.y); Serial.print(",");
+  Serial.print(gyro_event.gyro.z); Serial.print(",");
+  Serial2.print(gyro_event.gyro.x); Serial2.print(",");
+  Serial2.print(gyro_event.gyro.y); Serial2.print(",");
+  Serial2.print(gyro_event.gyro.z); Serial2.print(",");  
   
-  if (dof.accelGetOrientation(&event,&orient)){
+  if (dof.accelGetOrientation(&accel_event,&orient)){
     Serial.print(orient.roll); Serial.print(",");
     Serial.print(orient.pitch);Serial.print(",");
     Serial2.print(orient.roll); Serial2.print(",");
     Serial2.print(orient.pitch);Serial2.print(",");
   }
   
-  if(dof.magGetOrientation(SENSOR_AXIS_Z, &event, &orient)){
+  if(dof.magGetOrientation(SENSOR_AXIS_Z, &mag_event, &orient)){
     Serial.print(orient.heading); Serial.print(","); 
     Serial2.print(orient.heading); Serial2.print(","); 
   }         
