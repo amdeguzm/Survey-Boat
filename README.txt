@@ -1,23 +1,28 @@
 # Survey-Boat
 
 Tasks: 
-
--conduct static tests on boat to see if csv files are printed on SD card
--check if the heading angle is affected by the motor
+-separate test files 
+-create MATLAB code to parse data 
 -try to get an interrupt to work for throttle/rudder
 
--Fix header and cpp files to parse transducer and GPS data  (completed)
--collect data from IMU                                      (completed)
--parse IMU data                                             (completed)
--collect throttle and rudder servo data                     (completed)
--tape/velcro arduino to the boat for testing                (completed)
--redo the wiring from the receiver to the servos            (completed)
--aquire 3 channel connectors and extra cable                (completed)
+-check if the heading angle is affected by the motor                      (completed)
+-conduct static tests on boat to see if csv files are printed on SD card  (completed)
+-Fix header and cpp files to parse transducer and GPS data                (completed)
+-collect data from IMU                                                    (completed)
+-parse IMU data                                                           (completed)
+-collect throttle and rudder servo data                                   (completed)
+-tape/velcro arduino to the boat for testing                              (completed)
+-redo the wiring from the receiver to the servos                          (completed)
+-aquire 3 channel connectors and extra cable                              (completed)
 
 
   
   
   Notes: 
+  
+  4/18
+  -successful test on the water
+  -tests conducted: counter clockwise, closkwise, slow constant, fast constant, acceleration, slow constant
   
   4/8
   -used an external battery to power the servos (servos were drawing too much current from the arduino causing it to reset)
