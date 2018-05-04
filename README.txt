@@ -1,10 +1,13 @@
 # Survey-Boat
 
 Tasks: 
--separate test files 
+-plot relationships between throttle and position
+-plot relationship between rudder and yaw rate 
 -create MATLAB code to parse data 
 -try to get an interrupt to work for throttle/rudder
 
+
+-separate test files                                                      (completed
 -check if the heading angle is affected by the motor                      (completed)
 -conduct static tests on boat to see if csv files are printed on SD card  (completed)
 -Fix header and cpp files to parse transducer and GPS data                (completed)
@@ -18,7 +21,11 @@ Tasks:
 
   
   
-  Notes: 
+  Notes:
+  
+  5/3
+  -separated data into test files in "Test Data" folder
+  -added an excel doc that contains all the tests 
   
   4/18
   -successful test on the water
