@@ -1,6 +1,6 @@
 START OF TEST
 ax, ay, az, mx, my, mz, rx, ry, rz, roll, pitch, yaw, throttle, rudder
-6¶&f÷
+6≈ö&f√ñ
 $PSRFTXT,CLK:  94968*27
 $PSRFTXT,CHNL: 12*73
 -0.51,0.16,9.81,2.91,-30.64,-44.39,-0.31,-0.45,-0.40,0.92,-2.98,275.42,1495,1500
