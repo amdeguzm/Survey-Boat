@@ -48,16 +48,16 @@ void setup() {
    delay(2000);
    
    Serial.println("Survey Boat Data Packet");
-   Serial.print("ax");Serial.print(" ");Serial.print("ay");Serial.print(" ");Serial.print("az");Serial.print(" ");
-   Serial.print("mx");Serial.print(" ");Serial.print("my");Serial.print(" ");Serial.print("mz");Serial.print(" ");
-   Serial.print("rx");Serial.print(" ");Serial.print("ry");Serial.print(" ");Serial.print("rz");Serial.print(" ");
-   Serial.print("roll");Serial.print(" ");Serial.print("pitch");Serial.print(" ");Serial.print("yaw");Serial.print(" ");
-   Serial.print("throttle");Serial.print(" ");Serial.println("rudder");
-   Serial2.print("ax");Serial2.print(" ");Serial2.print("ay");Serial2.print(" ");Serial2.print("az");Serial2.print(" ");
-   Serial2.print("mx");Serial2.print(" ");Serial2.print("my");Serial2.print(" ");Serial2.print("mz");Serial2.print(" ");
-   Serial2.print("rx");Serial2.print(" ");Serial2.print("ry");Serial2.print(" ");Serial2.print("rz");Serial2.print(" ");
-   Serial2.print("roll");Serial2.print(" ");Serial2.print("pitch");Serial2.print(" ");Serial2.print("yaw");Serial2.print(" ");
-   Serial2.print("throttle");Serial2.print(" ");Serial2.println("rudder");
+   Serial.print("ax");Serial.print(",");Serial.print("ay");Serial.print(",");Serial.print("az");Serial.print(",");
+   Serial.print("mx");Serial.print(",");Serial.print("my");Serial.print(",");Serial.print("mz");Serial.print(",");
+   Serial.print("rx");Serial.print(",");Serial.print("ry");Serial.print(",");Serial.print("rz");Serial.print(",");
+   Serial.print("roll");Serial.print(",");Serial.print("pitch");Serial.print(",");Serial.print("yaw");Serial.print(",");
+   Serial.print("throttle");Serial.print(",");Serial.println("rudder");
+   Serial2.print("ax");Serial2.print(",");Serial2.print("ay");Serial2.print(",");Serial2.print("az");Serial2.print(",");
+   Serial2.print("mx");Serial2.print(",");Serial2.print("my");Serial2.print(",");Serial2.print("mz");Serial2.print(",");
+   Serial2.print("rx");Serial2.print(",");Serial2.print("ry");Serial2.print(",");Serial2.print("rz");Serial2.print(",");
+   Serial2.print("roll");Serial2.print(",");Serial2.print("pitch");Serial2.print(",");Serial2.print("yaw");Serial2.print(",");
+   Serial2.print("throttle");Serial2.print(",");Serial2.println("rudder");
    
  
    throttleServo.attach(THR_PIN);    // Digital pin 8 to white throttle wire
