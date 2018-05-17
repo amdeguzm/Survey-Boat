@@ -14,7 +14,7 @@
 #define THR_PIN    8                 // Throttle digital output pin to servo
 #define RUD_PULSE  4                 // Rudder digital input pin from receiver 
 #define RUD_PIN    9                 // Rudder digital output pin to servo
-
+#define auto_PULSE 5                 // Digital input for autopilot
 
 //-----------------------------------OBJECTS-------------------------------------------------
 Adafruit_10DOF                       dof   = Adafruit_10DOF();                     
@@ -28,6 +28,8 @@ Servo rudderServo;
 //-----------------------------------VARIABLES-----------------------------------------------
 volatile unsigned long thrPWM = 0;
 volatile unsigned long rudPWM = 0;
+volatile unsigned long auto_PWM = 0;
+
 String GPS_message = "";             // GPS nmea message string
 String Depth_message = "";           // Depth nmea message string
 
@@ -46,16 +48,16 @@ void setup() {
    delay(2000);
    
    Serial.println("Survey Boat Data Packet");
-   Serial.print("ax");Serial.print(" ");Serial.print("ay");Serial.print(" ");Serial.print("az");Serial.print(" ");
-   Serial.print("mx");Serial.print(" ");Serial.print("my");Serial.print(" ");Serial.print("mz");Serial.print(" ");
-   Serial.print("rx");Serial.print(" ");Serial.print("ry");Serial.print(" ");Serial.print("rz");Serial.print(" ");
-   Serial.print("roll");Serial.print(" ");Serial.print("pitch");Serial.print(" ");Serial.print("yaw");Serial.print(" ");
-   Serial.print("throttle");Serial.print(" ");Serial.println("rudder");
-   Serial2.print("ax");Serial2.print(" ");Serial2.print("ay");Serial2.print(" ");Serial2.print("az");Serial2.print(" ");
-   Serial2.print("mx");Serial2.print(" ");Serial2.print("my");Serial2.print(" ");Serial2.print("mz");Serial2.print(" ");
-   Serial2.print("rx");Serial2.print(" ");Serial2.print("ry");Serial2.print(" ");Serial2.print("rz");Serial2.print(" ");
-   Serial2.print("roll");Serial2.print(" ");Serial2.print("pitch");Serial2.print(" ");Serial2.print("yaw");Serial2.print(" ");
-   Serial2.print("throttle");Serial2.print(" ");Serial2.println("rudder");
+   Serial.print("ax");Serial.print(",");Serial.print("ay");Serial.print(",");Serial.print("az");Serial.print(",");
+   Serial.print("mx");Serial.print(",");Serial.print("my");Serial.print(",");Serial.print("mz");Serial.print(",");
+   Serial.print("rx");Serial.print(",");Serial.print("ry");Serial.print(",");Serial.print("rz");Serial.print(",");
+   Serial.print("roll");Serial.print(",");Serial.print("pitch");Serial.print(",");Serial.print("yaw");Serial.print(",");
+   Serial.print("throttle");Serial.print(",");Serial.println("rudder");
+   Serial2.print("ax");Serial2.print(",");Serial2.print("ay");Serial2.print(",");Serial2.print("az");Serial2.print(",");
+   Serial2.print("mx");Serial2.print(",");Serial2.print("my");Serial2.print(",");Serial2.print("mz");Serial2.print(",");
+   Serial2.print("rx");Serial2.print(",");Serial2.print("ry");Serial2.print(",");Serial2.print("rz");Serial2.print(",");
+   Serial2.print("roll");Serial2.print(",");Serial2.print("pitch");Serial2.print(",");Serial2.print("yaw");Serial2.print(",");
+   Serial2.print("throttle");Serial2.print(",");Serial2.println("rudder");
    
  
    throttleServo.attach(THR_PIN);    // Digital pin 8 to white throttle wire
@@ -80,15 +82,23 @@ void setup() {
 
 //-----------------------------------LOOP---------------------------------------------------
 void loop() {
+  
   record_GPS();
   record_IMU();
   //record_DBT();
-  pulse_Servo();   
+  pulse_Servo();                    // Continues manual control
   if(millis()>TEST_TIME){
     Serial.println("END OF TEST");
     Serial2.println("END OF TEST"); 
     while(1);
   }
+  while(autopilot()){
+    record_GPS();
+    record_IMU();
+    pulse_Servoauto();
+    // add routine here for autopilot controls
+  }
+  
 }
 
 
@@ -183,7 +193,21 @@ void record_GPS(){
 }
 
 /*
- * This method uses digital pins 3 and 4 to record throttle and rudder servo values
+ * This method uses digital pin 5 to decide if an auto pilot routine should be executed
+ */
+
+bool autopilot(){
+  bool mode = false;
+  auto_PWM = pulseIn(auto_PULSE, HIGH);
+  if(auto_PWM > 1500)
+    mode = true;
+  else
+    mode = false;
+  return mode;
+}
+
+/*
+ * This method uses analog pins 3 and 4 to record throttle and rudder servo values
  * values are in microseconds
  */
 void pulse_Servo(){
@@ -218,5 +242,17 @@ void pulse_Servo(){
   }
   Serial.println(rudPWM);Serial.print("");              //print the pulsewidth of the rudder when signal is high
   Serial2.println(rudPWM);Serial2.println(""); 
-
 }
+
+void pulse_Servoauto(){
+  thrPWM = pulseIn(THR_PULSE,HIGH);
+  rudPWM = pulseIn(RUD_PULSE, HIGH);
+  Serial.print(rudPWM); Serial.print(",");
+  Serial.print(thrPWM); Serial.print(",");
+  Serial2.print(rudPWM); Serial2.print(",");
+  Serial2.print(thrPWM); Serial2.print(",");
+  Serial.println("Auto");
+  Serial2.println("Auto");
+}
+
+
