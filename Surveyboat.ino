@@ -6,6 +6,8 @@
 #include <Adafruit_L3GD20_U.h>
 #include <Adafruit_10DOF.h>
 #include <Servo.h>                   // Servo library
+#include <PID_v1.h>                  // PID library
+
 
 
 //-----------------------------------MACROS-------------------------------------------------
@@ -15,6 +17,7 @@
 #define RUD_PULSE  4                 // Rudder digital input pin from receiver 
 #define RUD_PIN    9                 // Rudder digital output pin to servo
 #define auto_PULSE 5                 // Digital input for autopilot
+
 
 //-----------------------------------OBJECTS-------------------------------------------------
 Adafruit_10DOF                       dof   = Adafruit_10DOF();                     
@@ -30,8 +33,14 @@ volatile unsigned long thrPWM = 0;
 volatile unsigned long rudPWM = 0;
 volatile unsigned long auto_PWM = 0;
 
-String GPS_message = "";             // GPS nmea message string
-String Depth_message = "";           // Depth nmea message string
+String GPS_message = "";                      // GPS nmea message string
+String Depth_message = "";                    // Depth nmea message string
+
+double yawRateCurr, rudPWMAuto, yawRateRef;   // PID parameters
+double Kp = 5528.9;                                // PID gains 
+double Ki = 94008.0; 
+double Kd = 46.20;             
+PID myPID(&yawRateCurr, &rudPWMAuto, &yawRateRef,Kp,Ki,Kd, DIRECT);
 
 //-----------------------------------SETUP---------------------------------------------------
 void setup() {
@@ -40,9 +49,7 @@ void setup() {
    Serial2.begin(57600);            // SD card
    Serial3.begin(9600);              // Transducer
    Wire.begin();
-
-   
-   
+ 
    Serial.println("START OF TEST");
    Serial2.println("START OF TEST"); //To parse the beginning of test, could find a way to make this date/time later?
    delay(2000);
@@ -78,6 +85,8 @@ void setup() {
     Serial.print("Ooops, no L3GD20 detected ... Check your wiring or I2C ADDR!");
     while(1);
    }
+
+   myPID.SetMode(AUTOMATIC);        // Initialize PID
 }
 
 //-----------------------------------LOOP---------------------------------------------------
@@ -93,10 +102,11 @@ void loop() {
     while(1);
   }
   while(autopilot()){
+
     record_GPS();
     record_IMU();
-    pulse_Servoauto();
-    // add routine here for autopilot controls
+    pulse_Servoauto();              // Initiate autonomous control
+
   }
   
 }
@@ -245,14 +255,31 @@ void pulse_Servo(){
 }
 
 void pulse_Servoauto(){
-  thrPWM = pulseIn(THR_PULSE,HIGH);
-  rudPWM = pulseIn(RUD_PULSE, HIGH);
-  Serial.print(rudPWM); Serial.print(",");
+
+  // Extract necessary variables from IMU
+  sensors_event_t event;
+  sensors_vec_t orient;
+  gyro.getEvent(&event);
+  double yawRateCurr = event.gyro.z; 
+  dof.magGetOrientation(SENSOR_AXIS_Z, &event, &orient);
+  double yawCurr = orient.heading; 
+
+  // For now makes a variable out of yaw angle and yaw rate to set as a reference (eventually need to make a variable out of lat/long to be set as a reference)
+  double yawRef = 90.0; //deg
+  double yawRateRef = ((yawRef - yawCurr)/0.05)*(3.14159/180); //assume 20 samples per second average, in rad/s
+
+  // Computes the rudPWMAuto signal
+  myPID.Compute(); // Input and Reference is the yaw rate, output is the rudder control input
+  thrPWM = pulseIn(THR_PULSE,HIGH); //we still have control over throttle
+
+  throttleServo.writeMicroseconds(thrPWM);
+  rudderServo.writeMicroseconds(rudPWMAuto);
+
+  
+  Serial.print(rudPWMAuto); Serial.print(",");
   Serial.print(thrPWM); Serial.print(",");
-  Serial2.print(rudPWM); Serial2.print(",");
+  Serial2.print(rudPWMAuto); Serial2.print(",");
   Serial2.print(thrPWM); Serial2.print(",");
   Serial.println("Auto");
   Serial2.println("Auto");
 }
-
-
