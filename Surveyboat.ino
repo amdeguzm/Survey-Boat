@@ -37,9 +37,9 @@ String GPS_message = "";                      // GPS nmea message string
 String Depth_message = "";                    // Depth nmea message string
 
 double yawRateCurr, rudPWMAuto, yawRateRef;   // PID parameters
-double Kp = 5528.9;                           // PID gains 
+double Kp = 5528.9;                                // PID gains 
 double Ki = 94008.0; 
-double Kd = 46.20;         
+double Kd = 46.20;             
 PID myPID(&yawRateCurr, &rudPWMAuto, &yawRateRef,Kp,Ki,Kd, DIRECT);
 
 //-----------------------------------SETUP---------------------------------------------------
@@ -270,8 +270,12 @@ void pulse_Servoauto(){
 
   // Computes the rudPWMAuto signal
   myPID.Compute(); // Input and Reference is the yaw rate, output is the rudder control input
-  
   thrPWM = pulseIn(THR_PULSE,HIGH); //we still have control over throttle
+
+  throttleServo.writeMicroseconds(thrPWM);
+  rudderServo.writeMicroseconds(rudPWMAuto);
+
+  
   Serial.print(rudPWMAuto); Serial.print(",");
   Serial.print(thrPWM); Serial.print(",");
   Serial2.print(rudPWMAuto); Serial2.print(",");
