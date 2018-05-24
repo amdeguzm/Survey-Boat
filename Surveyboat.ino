@@ -36,8 +36,9 @@ volatile unsigned long auto_PWM = 0;
 String GPS_message = "";                      // GPS nmea message string
 String Depth_message = "";                    // Depth nmea message string
 
-double yawCurr,yawRateCurr, yawRateRef, rudPWMAuto = 1500; // PID parameters
-double Kp = 5528.9;                                // PID gains 
+double headingCurr,yawRateCurr, yawRateRef;   // PID parameters 
+double rudPWMAuto = 1500; 
+double Kp = 5528.9;                           // PID gains 
 double Ki = 94008.0; 
 double Kd = 46.20;             
 PID myPID(&yawRateCurr, &rudPWMAuto, &yawRateRef,Kp,Ki,Kd, DIRECT);
@@ -46,7 +47,7 @@ PID myPID(&yawRateCurr, &rudPWMAuto, &yawRateRef,Kp,Ki,Kd, DIRECT);
 void setup() {
    Serial.begin(57600);
    Serial1.begin(4800);              // GPS
-   Serial2.begin(57600);            // SD card
+   Serial2.begin(57600);             // SD card
    Serial3.begin(9600);              // Transducer
    Wire.begin();
  
@@ -145,7 +146,8 @@ void record_IMU(){
   Serial.print(gyro_event.gyro.z); Serial.print(",");
   Serial2.print(gyro_event.gyro.x); Serial2.print(",");
   Serial2.print(gyro_event.gyro.y); Serial2.print(",");
-  Serial2.print(gyro_event.gyro.z); Serial2.print(",");  
+  Serial2.print(gyro_event.gyro.z); Serial2.print(",");
+  yawRateCurr = double(gyro_event.gyro.z);  
   
   if (dof.accelGetOrientation(&accel_event,&orient)){
     Serial.print(orient.roll); Serial.print(",");
@@ -157,7 +159,7 @@ void record_IMU(){
   if(dof.magGetOrientation(SENSOR_AXIS_Z, &mag_event, &orient)){
     Serial.print(orient.heading); Serial.print(","); 
     Serial2.print(orient.heading); Serial2.print(","); 
-    yawCurr = (double)orient.heading;
+    headingCurr = (double)orient.heading;
   }         
 }
 
@@ -205,10 +207,11 @@ void record_GPS(){
   }
 }
 
+
+
 /*
  * This method uses digital pin 5 to decide if an auto pilot routine should be executed
  */
-
 bool autopilot(){
   bool mode = false;
   auto_PWM = pulseIn(auto_PULSE, HIGH);
@@ -218,6 +221,8 @@ bool autopilot(){
     mode = false;
   return mode;
 }
+
+
 
 /*
  * This method uses analog pins 3 and 4 to record throttle and rudder servo values
@@ -237,7 +242,7 @@ void pulse_Servo(){
     thrPWM = 1100;
     throttleServo.writeMicroseconds(thrPWM);
   }
-  Serial.print(thrPWM);Serial.print(",");                //print the pulsewidth of the throttle when signal is high
+  Serial.print(thrPWM);Serial.print(",");                // print the pulsewidth of the throttle when signal is high
   Serial2.print(thrPWM);Serial2.print(","); 
 
 
@@ -253,28 +258,21 @@ void pulse_Servo(){
     rudPWM = 1100;
     rudderServo.writeMicroseconds(rudPWM);
   }
-  Serial.println(rudPWM);Serial.print("");              //print the pulsewidth of the rudder when signal is high
+  Serial.println(rudPWM);Serial.print("");              // print the pulsewidth of the rudder when signal is high
   Serial2.println(rudPWM);Serial2.println(""); 
 }
 
+
+/*
+ * This method autonomously computes rudder input using PID control
+ */
 void pulse_Servoauto(){
+  
+  double headingRef = 90.0;                                                           // Deg - (eventually we want lat/lon as our reference instead of heading angle)
+  double yawRateRef = ((headingRef - headingCurr)/0.05)*(3.14159/180);                // Assume 20 samples per second average, in rad/s
 
-  // Extract necessary variables from IMU
-  sensors_event_t gyro_event;
-  sensors_event_t mag_event;
-  sensors_vec_t orient;
-  gyro.getEvent(&gyro_event);
-  double yawRateCurr = (double)gyro_event.gyro.z; 
-  dof.magGetOrientation(SENSOR_AXIS_Z, &mag_event, &orient);
-  //double yawCurr = (double)orient.heading; 
-
-  // For now makes a variable out of yaw angle and yaw rate to set as a reference (eventually need to make a variable out of lat/long to be set as a reference)
-  double yawRef = 90.0; //deg
-  double yawRateRef = ((yawRef - yawCurr)/0.05)*(3.14159/180); //assume 20 samples per second average, in rad/s
-
-  // Computes the rudPWMAuto signal
-  myPID.Compute(); // Input and Reference is the yaw rate, output is the rudder control input
-  thrPWM = pulseIn(THR_PULSE,HIGH); //we still have control over throttle
+  myPID.Compute();                                                                    // Computes PID Control: Input and Reference are the yaw rate, output is the rudder control input
+  thrPWM = pulseIn(THR_PULSE,HIGH);                                                   // we still have control over throttle
   if (rudPWMAuto < 1100){
     rudPWMAuto = 1100;
   }
@@ -282,17 +280,17 @@ void pulse_Servoauto(){
     rudPWMAuto = 1900; 
   }
 
-  throttleServo.writeMicroseconds(thrPWM);
+  throttleServo.writeMicroseconds(thrPWM);                                             // Write microseconds to throttle and rudder
   rudderServo.writeMicroseconds(rudPWMAuto);
 
   
-  Serial.print(rudPWMAuto); Serial.print(",");
+  Serial.print(rudPWMAuto); Serial.print(",");                                         // Print indicates we're in autonomous mode 
   Serial.print(thrPWM); Serial.print(",");
   Serial2.print(rudPWMAuto); Serial2.print(",");
   Serial2.print(thrPWM); Serial2.print(",");
   Serial.print("Auto");
   Serial2.println("Auto");
-  Serial.print(",");Serial.print(yawCurr); Serial.print(",");
+  Serial.print(",");Serial.print(headingCurr); Serial.print(",");                      // Delete once verified
   Serial.print(yawRateRef); Serial.print(",");
   Serial.println(rudPWMAuto);
 }
