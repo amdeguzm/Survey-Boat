@@ -5,8 +5,10 @@ Tasks:
 -figure out the offset for the heading
 -implement autonomous control code
 -perform dry test with control code
+-obtain lat/lon to be used as PID ref
+-introduce toggle to record a path
 
-
+-introduce toggle to set autonomous mode                                  (completed)
 -plot relationships between throttle and position                         (completed)
 -plot relationship between rudder and yaw rate                            (completed)
 -create MATLAB code to parse data                                         (completed)
@@ -25,7 +27,13 @@ Tasks:
   
   
   Notes:
-  
+ 
+ 5/21
+ -implemented method to switch to autonomous mode
+ -finished designing a controller and implementing it into arduino 
+ -fixed IMU data collection problems
+ 
+ 
   5/3
   -separated data into test files in "Test Data" folder
   -added an excel doc that contains all the tests 
