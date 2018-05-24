@@ -36,7 +36,7 @@ volatile unsigned long auto_PWM = 0;
 String GPS_message = "";                      // GPS nmea message string
 String Depth_message = "";                    // Depth nmea message string
 
-double yawRateCurr, rudPWMAuto, yawRateRef;   // PID parameters
+double yawCurr,yawRateCurr, yawRateRef, rudPWMAuto = 1500; // PID parameters
 double Kp = 5528.9;                                // PID gains 
 double Ki = 94008.0; 
 double Kd = 46.20;             
@@ -118,43 +118,46 @@ void loop() {
  * It has a no arg input and returns void
  */
 void record_IMU(){
-  sensors_event_t event;
+  sensors_event_t accel_event;
+  sensors_event_t mag_event; 
+  sensors_event_t gyro_event;
   sensors_vec_t orient;
   
-  accel.getEvent(&event);
-  Serial.print(event.acceleration.x); Serial.print(",");
-  Serial.print(event.acceleration.y); Serial.print(",");
-  Serial.print(event.acceleration.z); Serial.print(",");
-  Serial2.print(event.acceleration.x); Serial2.print(",");
-  Serial2.print(event.acceleration.y); Serial2.print(",");
-  Serial2.print(event.acceleration.z); Serial2.print(",");
+  accel.getEvent(&accel_event);
+  Serial.print(accel_event.acceleration.x); Serial.print(",");
+  Serial.print(accel_event.acceleration.y); Serial.print(",");
+  Serial.print(accel_event.acceleration.z); Serial.print(",");
+  Serial2.print(accel_event.acceleration.x); Serial2.print(",");
+  Serial2.print(accel_event.acceleration.y); Serial2.print(",");
+  Serial2.print(accel_event.acceleration.z); Serial2.print(",");
    
-  mag.getEvent(&event);
-  Serial.print(event.magnetic.x); Serial.print(",");
-  Serial.print(event.magnetic.y); Serial.print(",");
-  Serial.print(event.magnetic.z); Serial.print(",");
-  Serial2.print(event.magnetic.x); Serial2.print(",");
-  Serial2.print(event.magnetic.y); Serial2.print(",");
-  Serial2.print(event.magnetic.z); Serial2.print(",");
+  mag.getEvent(&mag_event);
+  Serial.print(mag_event.magnetic.x); Serial.print(",");
+  Serial.print(mag_event.magnetic.y); Serial.print(",");
+  Serial.print(mag_event.magnetic.z); Serial.print(",");
+  Serial2.print(mag_event.magnetic.x); Serial2.print(",");
+  Serial2.print(mag_event.magnetic.y); Serial2.print(",");
+  Serial2.print(mag_event.magnetic.z); Serial2.print(",");
   
-  gyro.getEvent(&event);
-  Serial.print(event.gyro.x); Serial.print(",");
-  Serial.print(event.gyro.y); Serial.print(",");
-  Serial.print(event.gyro.z); Serial.print(",");
-  Serial2.print(event.gyro.x); Serial2.print(",");
-  Serial2.print(event.gyro.y); Serial2.print(",");
-  Serial2.print(event.gyro.z); Serial2.print(",");  
+  gyro.getEvent(&gyro_event);
+  Serial.print(gyro_event.gyro.x); Serial.print(",");
+  Serial.print(gyro_event.gyro.y); Serial.print(",");
+  Serial.print(gyro_event.gyro.z); Serial.print(",");
+  Serial2.print(gyro_event.gyro.x); Serial2.print(",");
+  Serial2.print(gyro_event.gyro.y); Serial2.print(",");
+  Serial2.print(gyro_event.gyro.z); Serial2.print(",");  
   
-  if (dof.accelGetOrientation(&event,&orient)){
+  if (dof.accelGetOrientation(&accel_event,&orient)){
     Serial.print(orient.roll); Serial.print(",");
     Serial.print(orient.pitch);Serial.print(",");
     Serial2.print(orient.roll); Serial2.print(",");
     Serial2.print(orient.pitch);Serial2.print(",");
   }
   
-  if(dof.magGetOrientation(SENSOR_AXIS_Z, &event, &orient)){
+  if(dof.magGetOrientation(SENSOR_AXIS_Z, &mag_event, &orient)){
     Serial.print(orient.heading); Serial.print(","); 
     Serial2.print(orient.heading); Serial2.print(","); 
+    yawCurr = (double)orient.heading;
   }         
 }
 
@@ -257,12 +260,13 @@ void pulse_Servo(){
 void pulse_Servoauto(){
 
   // Extract necessary variables from IMU
-  sensors_event_t event;
+  sensors_event_t gyro_event;
+  sensors_event_t mag_event;
   sensors_vec_t orient;
-  gyro.getEvent(&event);
-  double yawRateCurr = event.gyro.z; 
-  dof.magGetOrientation(SENSOR_AXIS_Z, &event, &orient);
-  double yawCurr = orient.heading; 
+  gyro.getEvent(&gyro_event);
+  double yawRateCurr = (double)gyro_event.gyro.z; 
+  dof.magGetOrientation(SENSOR_AXIS_Z, &mag_event, &orient);
+  //double yawCurr = (double)orient.heading; 
 
   // For now makes a variable out of yaw angle and yaw rate to set as a reference (eventually need to make a variable out of lat/long to be set as a reference)
   double yawRef = 90.0; //deg
@@ -271,6 +275,12 @@ void pulse_Servoauto(){
   // Computes the rudPWMAuto signal
   myPID.Compute(); // Input and Reference is the yaw rate, output is the rudder control input
   thrPWM = pulseIn(THR_PULSE,HIGH); //we still have control over throttle
+  if (rudPWMAuto < 1100){
+    rudPWMAuto = 1100;
+  }
+  else if (rudPWMAuto > 1900){
+    rudPWMAuto = 1900; 
+  }
 
   throttleServo.writeMicroseconds(thrPWM);
   rudderServo.writeMicroseconds(rudPWMAuto);
@@ -280,6 +290,9 @@ void pulse_Servoauto(){
   Serial.print(thrPWM); Serial.print(",");
   Serial2.print(rudPWMAuto); Serial2.print(",");
   Serial2.print(thrPWM); Serial2.print(",");
-  Serial.println("Auto");
+  Serial.print("Auto");
   Serial2.println("Auto");
+  Serial.print(",");Serial.print(yawCurr); Serial.print(",");
+  Serial.print(yawRateRef); Serial.print(",");
+  Serial.println(rudPWMAuto);
 }
