@@ -28,6 +28,13 @@ Tasks:
   
   Notes:
  
+ 5/27
+ -trying to fix the controller code computation of the rudPWMAuto output
+ -scaled the reference rate data so the controller gains will output correct PWM signal 
+ -adjusted the sample time to 30 samples per second
+ -need to see the output of the rudPWMAuto signal for dry test
+ 
+ 
  5/21
  -implemented method to switch to autonomous mode
  -finished designing a controller and implementing it into arduino 
