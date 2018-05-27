@@ -17,6 +17,7 @@
 #define RUD_PULSE  4                 // Rudder digital input pin from receiver 
 #define RUD_PIN    9                 // Rudder digital output pin to servo
 #define auto_PULSE 5                 // Digital input for autopilot
+#define PI         3.14159295
 
 
 //-----------------------------------OBJECTS-------------------------------------------------
@@ -36,12 +37,11 @@ volatile unsigned long auto_PWM = 0;
 String GPS_message = "";                      // GPS nmea message string
 String Depth_message = "";                    // Depth nmea message string
 
-double headingCurr,yawRateCurr, yawRateRef;   // PID parameters 
-double rudPWMAuto = 1500; 
+double phi, theta, psi, curRate, refRate, rudPWMAuto;   // PID parameters 
 double Kp = 5528.9;                           // PID gains 
 double Ki = 94008.0; 
 double Kd = 46.20;             
-PID myPID(&yawRateCurr, &rudPWMAuto, &yawRateRef,Kp,Ki,Kd, DIRECT);
+PID myPID(&curRate, &rudPWMAuto, &refRate,Kp,Ki,Kd, DIRECT);
 
 //-----------------------------------SETUP---------------------------------------------------
 void setup() {
@@ -147,19 +147,21 @@ void record_IMU(){
   Serial2.print(gyro_event.gyro.x); Serial2.print(",");
   Serial2.print(gyro_event.gyro.y); Serial2.print(",");
   Serial2.print(gyro_event.gyro.z); Serial2.print(",");
-  yawRateCurr = double(gyro_event.gyro.z);  
+  curRate = double(gyro_event.gyro.z);  
   
   if (dof.accelGetOrientation(&accel_event,&orient)){
     Serial.print(orient.roll); Serial.print(",");
     Serial.print(orient.pitch);Serial.print(",");
     Serial2.print(orient.roll); Serial2.print(",");
     Serial2.print(orient.pitch);Serial2.print(",");
+    phi = (double)orient.roll;
+    theta = (double)orient.pitch;
   }
   
   if(dof.magGetOrientation(SENSOR_AXIS_Z, &mag_event, &orient)){
     Serial.print(orient.heading); Serial.print(","); 
     Serial2.print(orient.heading); Serial2.print(","); 
-    headingCurr = (double)orient.heading;
+    psi = (double)orient.heading;
   }         
 }
 
@@ -268,17 +270,18 @@ void pulse_Servo(){
  */
 void pulse_Servoauto(){
   
-  double headingRef = 90.0;                                                           // Deg - (eventually we want lat/lon as our reference instead of heading angle)
-  double yawRateRef = ((headingRef - headingCurr)/0.05)*(3.14159/180);                // Assume 20 samples per second average, in rad/s
+  double refpsi = 90.0;                                                               // Deg - (eventually we want lat/lon as our reference instead of heading angle)
+  double dpsi = (refpsi - psi)/0.03;                                                  // deg/s - about 30 samples per second
+  double refRate = cos(phi*PI/180)*cos(theta*PI/180)*dpsi*(PI/180)*(1/120);           // rad/s - scaled by a factor of about 120
 
   myPID.Compute();                                                                    // Computes PID Control: Input and Reference are the yaw rate, output is the rudder control input
   thrPWM = pulseIn(THR_PULSE,HIGH);                                                   // we still have control over throttle
-  if (rudPWMAuto < 1100){
-    rudPWMAuto = 1100;
-  }
-  else if (rudPWMAuto > 1900){
-    rudPWMAuto = 1900; 
-  }
+//  if (rudPWMAuto < 1100){
+//    rudPWMAuto = 1100;
+//  }
+//  else if (rudPWMAuto > 1900){
+//    rudPWMAuto = 1900; 
+//  }
 
   throttleServo.writeMicroseconds(thrPWM);                                             // Write microseconds to throttle and rudder
   rudderServo.writeMicroseconds(rudPWMAuto);
@@ -290,7 +293,7 @@ void pulse_Servoauto(){
   Serial2.print(thrPWM); Serial2.print(",");
   Serial.print("Auto");
   Serial2.println("Auto");
-  Serial.print(",");Serial.print(headingCurr); Serial.print(",");                      // Delete once verified
-  Serial.print(yawRateRef); Serial.print(",");
+  Serial.print(",");Serial.print(psi); Serial.print(",");                      // Delete once verified
+  Serial.print(refRate); Serial.print(",");
   Serial.println(rudPWMAuto);
 }
