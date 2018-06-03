@@ -269,7 +269,7 @@ void pulse_Servoauto(){
   double refRate = cos(phi*PI/180)*cos(theta*PI/180)*dpsi*(PI/180);                // rad/s - scaled by a factor of about 120
          refRate = refRate/350;
          
-  unsigned long now = millis();                                                    // Hard Codeed PID algorithm
+  unsigned long now = millis();                                                    // Hard Coded PID algorithm
   double timeChange = (double)(now - lastTime);
   double error = refRate - curRate; 
   errSum += (error*timeChange);
@@ -288,9 +288,4 @@ void pulse_Servoauto(){
   Serial2.print(rudPWMAuto+1500); Serial2.print(",");
   Serial.print("Auto");
   Serial2.println("Auto");
-                          
-  Serial.print(",");Serial.print(refRate); Serial.print(",");                      // For testing 
-  Serial.print(curRate);Serial.print(",");
-  Serial.print(error);Serial.print(",");
-  Serial.println(rudPWMAuto+1500);
 }
