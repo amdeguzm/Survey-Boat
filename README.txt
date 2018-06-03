@@ -3,10 +3,12 @@
 Tasks: 
 
 -figure out the offset for the heading
--implement autonomous control code
--perform dry test with control code
+-obtain lat/lon to be used as PID ref
+-introduce toggle to record a path
 
-
+-perform dry test with control code                                       (completed)
+-implement autonomous control code                                        (completed)
+-introduce toggle to set autonomous mode                                  (completed)
 -plot relationships between throttle and position                         (completed)
 -plot relationship between rudder and yaw rate                            (completed)
 -create MATLAB code to parse data                                         (completed)
@@ -26,6 +28,24 @@ Tasks:
   
   Notes:
   
+  6/3
+  -updated PID code to include hard code instead of library
+  -adjusted Ki gain so that error summing wasn't occuring too quickly 
+  -performed dry static test with rudder and PID code (successful!)
+ 
+ 5/27
+ -trying to fix the controller code computation of the rudPWMAuto output
+ -scaled the reference rate data so the controller gains will output correct PWM signal 
+ -adjusted the sample time to 30 samples per second
+ -need to see the output of the rudPWMAuto signal for dry test
+ 
+ 
+ 5/21
+ -implemented method to switch to autonomous mode
+ -finished designing a controller and implementing it into arduino 
+ -fixed IMU data collection problems
+ 
+ 
   5/3
   -separated data into test files in "Test Data" folder
   -added an excel doc that contains all the tests 

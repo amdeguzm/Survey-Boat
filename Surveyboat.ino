@@ -6,9 +6,6 @@
 #include <Adafruit_L3GD20_U.h>
 #include <Adafruit_10DOF.h>
 #include <Servo.h>                   // Servo library
-#include <PID_v1.h>                  // PID library
-
-
 
 //-----------------------------------MACROS-------------------------------------------------
 #define TEST_TIME  10000000          // Test time in milliseconds
@@ -17,7 +14,7 @@
 #define RUD_PULSE  4                 // Rudder digital input pin from receiver 
 #define RUD_PIN    9                 // Rudder digital output pin to servo
 #define auto_PULSE 5                 // Digital input for autopilot
-
+#define PI         3.1415926535897932384626433832795
 
 //-----------------------------------OBJECTS-------------------------------------------------
 Adafruit_10DOF                       dof   = Adafruit_10DOF();                     
@@ -31,22 +28,24 @@ Servo rudderServo;
 //-----------------------------------VARIABLES-----------------------------------------------
 volatile unsigned long thrPWM = 0;
 volatile unsigned long rudPWM = 0;
-volatile unsigned long auto_PWM = 0;
+volatile unsigned long autoPWM = 0; 
 
-String GPS_message = "";                      // GPS nmea message string
-String Depth_message = "";                    // Depth nmea message string
+String GPS_message = "";                     // GPS nmea message string
+String Depth_message = "";                   // Depth nmea message string
 
-double yawRateCurr, rudPWMAuto, yawRateRef;   // PID parameters
-double Kp = 5528.9;                                // PID gains 
-double Ki = 94008.0; 
-double Kd = 46.20;             
-PID myPID(&yawRateCurr, &rudPWMAuto, &yawRateRef,Kp,Ki,Kd, DIRECT);
+double phi, theta, psi, curRate, refRate;    // PID parameters
+double rudPWMAuto=0, errSum=0, lastErr=0;    
+unsigned long lastTime= 0;
+
+double Kp = 244.385;                         // PID gains 
+double Ki = 5920.4498*1e-7; 
+double Kd = 00.31896;             
 
 //-----------------------------------SETUP---------------------------------------------------
 void setup() {
    Serial.begin(57600);
    Serial1.begin(4800);              // GPS
-   Serial2.begin(57600);            // SD card
+   Serial2.begin(57600);             // SD card
    Serial3.begin(9600);              // Transducer
    Wire.begin();
  
@@ -85,8 +84,6 @@ void setup() {
     Serial.print("Ooops, no L3GD20 detected ... Check your wiring or I2C ADDR!");
     while(1);
    }
-
-   myPID.SetMode(AUTOMATIC);        // Initialize PID
 }
 
 //-----------------------------------LOOP---------------------------------------------------
@@ -102,11 +99,9 @@ void loop() {
     while(1);
   }
   while(autopilot()){
-
     record_GPS();
     record_IMU();
     pulse_Servoauto();              // Initiate autonomous control
-
   }
   
 }
@@ -118,43 +113,50 @@ void loop() {
  * It has a no arg input and returns void
  */
 void record_IMU(){
-  sensors_event_t event;
+  sensors_event_t accel_event;
+  sensors_event_t mag_event; 
+  sensors_event_t gyro_event;
   sensors_vec_t orient;
   
-  accel.getEvent(&event);
-  Serial.print(event.acceleration.x); Serial.print(",");
-  Serial.print(event.acceleration.y); Serial.print(",");
-  Serial.print(event.acceleration.z); Serial.print(",");
-  Serial2.print(event.acceleration.x); Serial2.print(",");
-  Serial2.print(event.acceleration.y); Serial2.print(",");
-  Serial2.print(event.acceleration.z); Serial2.print(",");
+  accel.getEvent(&accel_event);
+  Serial.print(accel_event.acceleration.x); Serial.print(",");
+  Serial.print(accel_event.acceleration.y); Serial.print(",");
+  Serial.print(accel_event.acceleration.z); Serial.print(",");
+  Serial2.print(accel_event.acceleration.x); Serial2.print(",");
+  Serial2.print(accel_event.acceleration.y); Serial2.print(",");
+  Serial2.print(accel_event.acceleration.z); Serial2.print(",");
    
-  mag.getEvent(&event);
-  Serial.print(event.magnetic.x); Serial.print(",");
-  Serial.print(event.magnetic.y); Serial.print(",");
-  Serial.print(event.magnetic.z); Serial.print(",");
-  Serial2.print(event.magnetic.x); Serial2.print(",");
-  Serial2.print(event.magnetic.y); Serial2.print(",");
-  Serial2.print(event.magnetic.z); Serial2.print(",");
+  mag.getEvent(&mag_event);
+  Serial.print(mag_event.magnetic.x); Serial.print(",");
+  Serial.print(mag_event.magnetic.y); Serial.print(",");
+  Serial.print(mag_event.magnetic.z); Serial.print(",");
+  Serial2.print(mag_event.magnetic.x); Serial2.print(",");
+  Serial2.print(mag_event.magnetic.y); Serial2.print(",");
+  Serial2.print(mag_event.magnetic.z); Serial2.print(",");
   
-  gyro.getEvent(&event);
-  Serial.print(event.gyro.x); Serial.print(",");
-  Serial.print(event.gyro.y); Serial.print(",");
-  Serial.print(event.gyro.z); Serial.print(",");
-  Serial2.print(event.gyro.x); Serial2.print(",");
-  Serial2.print(event.gyro.y); Serial2.print(",");
-  Serial2.print(event.gyro.z); Serial2.print(",");  
+  gyro.getEvent(&gyro_event);
+  Serial.print(gyro_event.gyro.x); Serial.print(",");
+  Serial.print(gyro_event.gyro.y); Serial.print(",");
+  Serial.print(gyro_event.gyro.z); Serial.print(",");
+  Serial2.print(gyro_event.gyro.x); Serial2.print(",");
+  Serial2.print(gyro_event.gyro.y); Serial2.print(",");
+  Serial2.print(gyro_event.gyro.z); Serial2.print(",");
+  curRate = double(gyro_event.gyro.z);  
+  curRate = curRate + 0.01;
   
-  if (dof.accelGetOrientation(&event,&orient)){
+  if (dof.accelGetOrientation(&accel_event,&orient)){
     Serial.print(orient.roll); Serial.print(",");
     Serial.print(orient.pitch);Serial.print(",");
     Serial2.print(orient.roll); Serial2.print(",");
     Serial2.print(orient.pitch);Serial2.print(",");
+    phi = (double)orient.roll;
+    theta = (double)orient.pitch;
   }
   
-  if(dof.magGetOrientation(SENSOR_AXIS_Z, &event, &orient)){
+  if(dof.magGetOrientation(SENSOR_AXIS_Z, &mag_event, &orient)){
     Serial.print(orient.heading); Serial.print(","); 
     Serial2.print(orient.heading); Serial2.print(","); 
+    psi = (double)orient.heading;
   }         
 }
 
@@ -202,19 +204,22 @@ void record_GPS(){
   }
 }
 
+
+
 /*
  * This method uses digital pin 5 to decide if an auto pilot routine should be executed
  */
-
 bool autopilot(){
   bool mode = false;
-  auto_PWM = pulseIn(auto_PULSE, HIGH);
-  if(auto_PWM > 1500)
+  autoPWM = pulseIn(auto_PULSE, HIGH);
+  if(autoPWM > 1500)
     mode = true;
   else
     mode = false;
   return mode;
 }
+
+
 
 /*
  * This method uses analog pins 3 and 4 to record throttle and rudder servo values
@@ -234,7 +239,7 @@ void pulse_Servo(){
     thrPWM = 1100;
     throttleServo.writeMicroseconds(thrPWM);
   }
-  Serial.print(thrPWM);Serial.print(",");                //print the pulsewidth of the throttle when signal is high
+  Serial.print(thrPWM);Serial.print(",");                // print the pulsewidth of the throttle when signal is high
   Serial2.print(thrPWM);Serial2.print(","); 
 
 
@@ -250,36 +255,42 @@ void pulse_Servo(){
     rudPWM = 1100;
     rudderServo.writeMicroseconds(rudPWM);
   }
-  Serial.println(rudPWM);Serial.print("");              //print the pulsewidth of the rudder when signal is high
+  Serial.println(rudPWM);Serial.print("");              // print the pulsewidth of the rudder when signal is high
   Serial2.println(rudPWM);Serial2.println(""); 
 }
 
+
+/*
+ * This method autonomously computes rudder input using PID control
+ */
 void pulse_Servoauto(){
+  double refpsi = 90;                                                              // Deg - (eventually we want lat/lon as our reference instead of heading angle)
+  double dpsi = (refpsi - psi)/0.0095;                                             // deg/s - about 10 samples per second
+  double refRate = cos(phi*PI/180)*cos(theta*PI/180)*dpsi*(PI/180);                // rad/s - scaled by a factor of about 120
+         refRate = refRate/350;
+         
+  unsigned long now = millis();                                                    // Hard Codeed PID algorithm
+  double timeChange = (double)(now - lastTime);
+  double error = refRate - curRate; 
+  errSum += (error*timeChange);
+  double dErr = (error - lastErr) / timeChange;
+  rudPWMAuto = Kp*error +Ki*errSum+ Kd*dErr;
+  lastErr  = error; 
+  lastTime = now; 
 
-  // Extract necessary variables from IMU
-  sensors_event_t event;
-  sensors_vec_t orient;
-  gyro.getEvent(&event);
-  double yawRateCurr = event.gyro.z; 
-  dof.magGetOrientation(SENSOR_AXIS_Z, &event, &orient);
-  double yawCurr = orient.heading; 
-
-  // For now makes a variable out of yaw angle and yaw rate to set as a reference (eventually need to make a variable out of lat/long to be set as a reference)
-  double yawRef = 90.0; //deg
-  double yawRateRef = ((yawRef - yawCurr)/0.05)*(3.14159/180); //assume 20 samples per second average, in rad/s
-
-  // Computes the rudPWMAuto signal
-  myPID.Compute(); // Input and Reference is the yaw rate, output is the rudder control input
-  thrPWM = pulseIn(THR_PULSE,HIGH); //we still have control over throttle
-
-  throttleServo.writeMicroseconds(thrPWM);
-  rudderServo.writeMicroseconds(rudPWMAuto);
-
-  
-  Serial.print(rudPWMAuto); Serial.print(",");
-  Serial.print(thrPWM); Serial.print(",");
-  Serial2.print(rudPWMAuto); Serial2.print(",");
+  thrPWM = pulseIn(THR_PULSE,HIGH);                                                // for control over throttle
+  throttleServo.writeMicroseconds(thrPWM);                                         // Write microseconds to throttle and rudder
+  rudderServo.writeMicroseconds(rudPWMAuto+1500);
+ 
+  Serial.print(thrPWM); Serial.print(",");                                         // Print indicates we're in autonomous mode 
+  Serial.print(rudPWMAuto+1500); Serial.print(",");
   Serial2.print(thrPWM); Serial2.print(",");
-  Serial.println("Auto");
+  Serial2.print(rudPWMAuto+1500); Serial2.print(",");
+  Serial.print("Auto");
   Serial2.println("Auto");
+                          
+  Serial.print(",");Serial.print(refRate); Serial.print(",");                      // For testing 
+  Serial.print(curRate);Serial.print(",");
+  Serial.print(error);Serial.print(",");
+  Serial.println(rudPWMAuto+1500);
 }
