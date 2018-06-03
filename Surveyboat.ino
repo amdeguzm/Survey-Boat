@@ -6,9 +6,6 @@
 #include <Adafruit_L3GD20_U.h>
 #include <Adafruit_10DOF.h>
 #include <Servo.h>                   // Servo library
-#include <PID_v1.h>                  // PID library
-
-
 
 //-----------------------------------MACROS-------------------------------------------------
 #define TEST_TIME  10000000          // Test time in milliseconds
@@ -17,8 +14,7 @@
 #define RUD_PULSE  4                 // Rudder digital input pin from receiver 
 #define RUD_PIN    9                 // Rudder digital output pin to servo
 #define auto_PULSE 5                 // Digital input for autopilot
-#define PI         3.14159295
-
+#define PI         3.1415926535897932384626433832795
 
 //-----------------------------------OBJECTS-------------------------------------------------
 Adafruit_10DOF                       dof   = Adafruit_10DOF();                     
@@ -32,16 +28,18 @@ Servo rudderServo;
 //-----------------------------------VARIABLES-----------------------------------------------
 volatile unsigned long thrPWM = 0;
 volatile unsigned long rudPWM = 0;
-volatile unsigned long auto_PWM = 0;
+volatile unsigned long autoPWM = 0; 
 
-String GPS_message = "";                      // GPS nmea message string
-String Depth_message = "";                    // Depth nmea message string
+String GPS_message = "";                     // GPS nmea message string
+String Depth_message = "";                   // Depth nmea message string
 
-double phi, theta, psi, curRate, refRate, rudPWMAuto;   // PID parameters 
-double Kp = 5528.9;                           // PID gains 
-double Ki = 94008.0; 
-double Kd = 46.20;             
-PID myPID(&curRate, &rudPWMAuto, &refRate,Kp,Ki,Kd, DIRECT);
+double phi, theta, psi, curRate, refRate;    // PID parameters
+double rudPWMAuto=0, errSum=0, lastErr=0;    
+unsigned long lastTime= 0;
+
+double Kp = 244.385;                         // PID gains 
+double Ki = 5920.4498*1e-7; 
+double Kd = 00.31896;             
 
 //-----------------------------------SETUP---------------------------------------------------
 void setup() {
@@ -86,8 +84,6 @@ void setup() {
     Serial.print("Ooops, no L3GD20 detected ... Check your wiring or I2C ADDR!");
     while(1);
    }
-
-   myPID.SetMode(AUTOMATIC);        // Initialize PID
 }
 
 //-----------------------------------LOOP---------------------------------------------------
@@ -103,11 +99,9 @@ void loop() {
     while(1);
   }
   while(autopilot()){
-
     record_GPS();
     record_IMU();
     pulse_Servoauto();              // Initiate autonomous control
-
   }
   
 }
@@ -148,6 +142,7 @@ void record_IMU(){
   Serial2.print(gyro_event.gyro.y); Serial2.print(",");
   Serial2.print(gyro_event.gyro.z); Serial2.print(",");
   curRate = double(gyro_event.gyro.z);  
+  curRate = curRate + 0.01;
   
   if (dof.accelGetOrientation(&accel_event,&orient)){
     Serial.print(orient.roll); Serial.print(",");
@@ -216,8 +211,8 @@ void record_GPS(){
  */
 bool autopilot(){
   bool mode = false;
-  auto_PWM = pulseIn(auto_PULSE, HIGH);
-  if(auto_PWM > 1500)
+  autoPWM = pulseIn(auto_PULSE, HIGH);
+  if(autoPWM > 1500)
     mode = true;
   else
     mode = false;
@@ -269,31 +264,33 @@ void pulse_Servo(){
  * This method autonomously computes rudder input using PID control
  */
 void pulse_Servoauto(){
-  
-  double refpsi = 90.0;                                                               // Deg - (eventually we want lat/lon as our reference instead of heading angle)
-  double dpsi = (refpsi - psi)/0.03;                                                  // deg/s - about 30 samples per second
-  double refRate = cos(phi*PI/180)*cos(theta*PI/180)*dpsi*(PI/180)*(1/120);           // rad/s - scaled by a factor of about 120
+  double refpsi = 90;                                                              // Deg - (eventually we want lat/lon as our reference instead of heading angle)
+  double dpsi = (refpsi - psi)/0.0095;                                             // deg/s - about 10 samples per second
+  double refRate = cos(phi*PI/180)*cos(theta*PI/180)*dpsi*(PI/180);                // rad/s - scaled by a factor of about 120
+         refRate = refRate/350;
+         
+  unsigned long now = millis();                                                    // Hard Codeed PID algorithm
+  double timeChange = (double)(now - lastTime);
+  double error = refRate - curRate; 
+  errSum += (error*timeChange);
+  double dErr = (error - lastErr) / timeChange;
+  rudPWMAuto = Kp*error +Ki*errSum+ Kd*dErr;
+  lastErr  = error; 
+  lastTime = now; 
 
-  myPID.Compute();                                                                    // Computes PID Control: Input and Reference are the yaw rate, output is the rudder control input
-  thrPWM = pulseIn(THR_PULSE,HIGH);                                                   // we still have control over throttle
-//  if (rudPWMAuto < 1100){
-//    rudPWMAuto = 1100;
-//  }
-//  else if (rudPWMAuto > 1900){
-//    rudPWMAuto = 1900; 
-//  }
-
-  throttleServo.writeMicroseconds(thrPWM);                                             // Write microseconds to throttle and rudder
-  rudderServo.writeMicroseconds(rudPWMAuto);
-
-  
-  Serial.print(rudPWMAuto); Serial.print(",");                                         // Print indicates we're in autonomous mode 
-  Serial.print(thrPWM); Serial.print(",");
-  Serial2.print(rudPWMAuto); Serial2.print(",");
+  thrPWM = pulseIn(THR_PULSE,HIGH);                                                // for control over throttle
+  throttleServo.writeMicroseconds(thrPWM);                                         // Write microseconds to throttle and rudder
+  rudderServo.writeMicroseconds(rudPWMAuto+1500);
+ 
+  Serial.print(thrPWM); Serial.print(",");                                         // Print indicates we're in autonomous mode 
+  Serial.print(rudPWMAuto+1500); Serial.print(",");
   Serial2.print(thrPWM); Serial2.print(",");
+  Serial2.print(rudPWMAuto+1500); Serial2.print(",");
   Serial.print("Auto");
   Serial2.println("Auto");
-  Serial.print(",");Serial.print(psi); Serial.print(",");                      // Delete once verified
-  Serial.print(refRate); Serial.print(",");
-  Serial.println(rudPWMAuto);
+                          
+  Serial.print(",");Serial.print(refRate); Serial.print(",");                      // For testing 
+  Serial.print(curRate);Serial.print(",");
+  Serial.print(error);Serial.print(",");
+  Serial.println(rudPWMAuto+1500);
 }
