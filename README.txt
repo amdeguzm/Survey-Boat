@@ -1,5 +1,20 @@
 # Survey-Boat
 
+Overview: 
+This README contains a log of all the tasks needed to reach the goals set for the survey boat along with some notes on when the tasks were completed. 
+
+The Survey Boat repository contains an arduino file, Surverboat.ino, with functions that allow the boat to switch between remote control and autonomous control. The survey boat has functions to collect IMU data, GPS, and depth measurements. Descriptions of the functions are included in the file. 
+
+A schematic of the PCB for the survey boat is also included (Schematic_4_4_18.JPG and Board_4_4_18.JPG). 
+
+Other resources included in the repository are within the folders: Notes, Old Versions, Resources, Test Data. 
+
+
+
+
+
+
+
 Tasks: 
 
 -figure out the offset for the heading
